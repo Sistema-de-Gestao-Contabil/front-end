@@ -31,6 +31,10 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     path: "/planning",
     icon: <Icon icon="ic:baseline-add-chart" width="24" height="24" />,
     submenu: true,
+     subMenuItems: [
+        { title: 'Registrar Planejamento', path: '/registerPlanning' },
+        { title: 'Planejamentos Mensais', path: '/listPlanning' },
+      ],
   },
   {
     title: "Funcionário",
