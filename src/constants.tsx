@@ -16,15 +16,15 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
   },
   {
     title: "Financeiro",
-    path: "/planning",
+    path: "/financial",
     icon: (
       <Icon icon="material-symbols:finance-rounded" width="24" height="24" />
     ),
-    submenu: true,
-      subMenuItems: [
-        { title: 'Name', path: '/' },
-        { title: 'Name', path: '/' },
-      ],
+    //submenu: true,
+    // subMenuItems: [
+    //   { title: 'Despesas', path: '/financial/expenses' },
+    //   { title: 'Receitas', path: '/financial/income' },
+    // ],
   },
   {
     title: "Planejamento",
