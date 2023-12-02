@@ -11,18 +11,15 @@ export default function Company() {
     const handleSignupForm = (event:any)  => {
         event.preventDefault()
         console.log({name, email, password})
-        
+      
     }
     return (
     
-
         <div className={styles.container}>
             <div className={styles.div1}>
-                <h1>Acompanhe o controle financeiro da sua empresa</h1>
-                <p>gerencie suas receitas e despesas</p>
+                <h1 className={styles.h1}>Acompanhe o controle financeiro da sua empresa</h1>
+                <p className={styles.p}>gerencie suas receitas e despesas</p>
             </div>
-
-                
 
                 <div className={styles.div2}>
                     <h1 className={styles.h1}>Cadastre sua Empresa</h1>
@@ -57,17 +54,19 @@ export default function Company() {
                             required 
                           />
 
-                        {/* <label>Confirmar Senha</label> */}
-                        {/* <input 
+                        <label>Confirmar Senha</label>
+                        <input 
+                            className={styles.input}
                             type="password"
                             placeholder="Confirmar Senha"
                             value={password}
                             onChange={(event) => setPassword(event.target.value)}
                             required
-                           /> */}
+                           />
 
-                        <button className={styles.submit} type='submit'> Cadastrar </button>
+                        <button className={styles.submit} type='submit'> Próximo </button>
                     </form>
+                   
                 </div>
 
                 

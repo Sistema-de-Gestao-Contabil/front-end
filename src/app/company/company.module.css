@@ -21,38 +21,43 @@
 .input{
     margin-left: 20px;
     margin-bottom: 10px;
-    border: 2px solid #6174EE;
+    border: 2px  ;
     border-radius: 5px;  
+    
 }
 
 .div1{
-    width: 80%;
+    width: 30%;
     transform: translate(-50%, -50%);
-    position: absolute;
     top: 50%;
     left: 50%;
+    background-color: #d0d0da;
  
 
 }
 
 .div2{
-    width: 30%;
+    width: 300px;
     transform: translate(-50%, -50%);
     position: absolute;
     top: 50%;
-    left: 50%;
+    left: 70%;
+    
 
 }
-
 
 .h1{
     color: #000000;
-    margin-bottom: 20%;
-
+    margin-top: 10%;
+    text-align: center;   
 }
-/* .p{
-    
-} */
+
+.p{
+    margin-bottom: 5%;
+    text-align: center;
+    font-size: 15px;
+}
+
 
 .placeholder {
     color: #9A9AA2;
