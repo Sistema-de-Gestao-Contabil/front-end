@@ -16,7 +16,7 @@ const hasCategorySchema = z.array(
 const planning = z
   .object({
     month: z.string().min(1, "Informar o mês do planejamento é obrigatório."),
-    value: z.number().min(1,"Informe um valor válido"),
+    value: z.number().min(1, "Informe um valor válido"),
     hasCategory: hasCategorySchema,
   })
   .refine((fields) => fields.hasCategory.length > 0, {
@@ -64,27 +64,34 @@ export default function Planning() {
   }, []);
 
   function diminuirValorDisponivel() {
+    const reduct: number[] = [];
     valuePerCategory.map((item) => {
-      setAvailable(value - item.valuePerCategory);
+      const initialValue = value;
+      reduct.push(item.valuePerCategory);
+      const subtr = reduct.reduce(
+        (acumulator, currentvalue) => acumulator - currentvalue,
+        initialValue
+      );
+      setAvailable(subtr);
     });
   }
 
-  function aumentarValorDisponivel() {
-    valuePerCategory.map((item) => {
-      setAvailable(value + item.valuePerCategory);
-    });
+  function aumentarValorDisponivel(id: number) {
+    const initialValue = availableValue;
+    const add = initialValue + valuePerCategory[id].valuePerCategory;
+    setAvailable(add);
   }
 
   function handleClick() {
     diminuirValorDisponivel(),
-    append({
-      category: 0,
-      valuePerCategory: 0,
-    });
+      append({
+        category: 0,
+        valuePerCategory: 0,
+      });
   }
 
   function handleClick2(id: number) {
-    aumentarValorDisponivel(), remove(id);
+    aumentarValorDisponivel(id), remove(id);
   }
 
   const onSubmit = (data: any) => {
@@ -99,7 +106,7 @@ export default function Planning() {
       <p className="text-sm text-[#908B8B]">
         Gerencie seus planejamentos mensais
       </p>
-      <form onClick={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="mt-12">
           <p className="text-center text-xl text-[#6174EE]">
             <b>Registrar Planejamento</b>
@@ -122,9 +129,12 @@ export default function Planning() {
               className="w-40 bg-[#E9E9FF] h-8 rounded"
               id="number"
               type="number"
-              placeholder=""
+              placeholder="R$ 0.00"
               {...register("value", { required: true, valueAsNumber: true })}
-              onChange={(event: any) => [setAvailable(event.target.value), setValue(event.target.value)]}
+              onChange={(event: any) => [
+                setAvailable(event.target.value),
+                setValue(event.target.value),
+              ]}
             />
             {/* {errors.value && <p>{errors.value.message}</p>} */}
           </div>
@@ -145,23 +155,21 @@ export default function Planning() {
                 width="24"
                 height="24"
               />
-                <p className="ml-25">${availableValue ? availableValue : 0.0}</p>
-                {/* <p>{...register("planning.value")}</p> */}
-                <Icon
-                  icon="nimbus:money"
-                  className="text-[#6174EE] ml-20"
-                  width="24"
-                  height="24"
-                />
+              <p className="ml-25">R${availableValue ? availableValue : 0.0}</p>
+              {/* <p>{...register("planning.value")}</p> */}
+              <Icon
+                icon="nimbus:money"
+                className="text-[#6174EE] ml-20"
+                width="24"
+                height="24"
+              />
               <p className="ml-20">R${value ? value : 0.0}</p>
             </div>
             <div className="grid grid-cols-3">
               <p className="text-sm text-[#908B8B]">
                 Valor restante disponível
               </p>
-              <p className="text-sm text-[#908B8B]">
-                Valor total informado
-              </p>
+              <p className="text-sm text-[#908B8B]">Valor total informado</p>
             </div>
           </div>
           {fields.map((field, index) => (
@@ -206,7 +214,7 @@ export default function Planning() {
                   type="button"
                   className="w-10 ml-2 text-center rounded-full"
                   iconName="gg:remove"
-                  onClick={() => remove(index)}
+                  onClick={() => handleClick2(index)}
                 />
               </div>
             </div>
@@ -215,12 +223,7 @@ export default function Planning() {
             type="button"
             className="w-10 ml-2 text-center rounded-full mt-5"
             iconName="gg:add"
-            onClick={() =>
-              append({
-                category: 0,
-                valuePerCategory: 0,
-              })
-            }
+            onClick={() => handleClick()}
           />
           <div className="flex justify-end">
             <Button type="submit">Finalizar</Button>
@@ -229,12 +232,4 @@ export default function Planning() {
       </form>
     </div>
   );
-}
-
-{
-  /* // const handlePhoneNumberChange = (e: { target: { value: any } }) => {
-//     const input = e.target.value;
-//     const formatted = formatPhoneNumber(input);
-//     setValue("phone", formatted);
-// }; */
 }

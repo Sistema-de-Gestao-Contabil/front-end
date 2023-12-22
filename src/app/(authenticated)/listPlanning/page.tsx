@@ -12,25 +12,41 @@ const select = z.object({
 });
 
 const validate = z.object({
-  id: z.number(),
-  month: z.string(),
-  hasCategory: z.array(z.object({
-    category: z.any(),
-    valuePerCategory: z.number(),
-  })),
+  planejamento: z.object({
+    id: z.number(),
+    month: z.string(),
+    value: z.number(),
+    hasCategory: z.array(
+      z.object({
+        category: z.any(),
+        valuePerCategory: z.number(),
+      })
+    ),
+  }),
 
+  transaction: z.array(
+    z.object({
+      categoriaSoma: z.number(),
+    })
+  ),
+});
+
+const validateDespesa = z.object({
+  value: z.number(),
+  // dateValue: z.number(),
 });
 
 type createPlanningFormData = z.infer<typeof select>;
 type createOptionsFormData = z.infer<typeof validate>;
-
+// type createDespesasFormData = z.infer<typeof validateDespesa>;
 
 export default function Planning() {
-  const [planning, setPlanning] = useState<createOptionsFormData[]>([])
+  const [planning, setPlanning] = useState<createOptionsFormData[]>([]);
   const [data, setData] = useState<createOptionsFormData[]>([]);
-
+  const [despesas, setDespesas] = useState([]);
   const [options, setOptions] = useState<createOptionsFormData[]>([]);
-
+  const [reload, setReload] = useState(true);
+  const [situation, setSituation] = useState([""]);
 
   function convert(data: any) {
     if (data) {
@@ -73,13 +89,18 @@ export default function Planning() {
     (async () => {
       await useApi("get", "/planning", planning)
         .then((response) => {
-          return setPlanning(response), setOptions(response);
+          return (
+            setPlanning(response),
+            setOptions(response),
+            setReload(true),
+            situacao(response)
+          );
         })
         .catch((error) => {
           console.log(error);
         });
     })();
-  }, []);
+  }, [reload]);
 
   async function onSubmit() {
     await useApi("get", `/planning/${id}`)
@@ -92,19 +113,50 @@ export default function Planning() {
   }
 
   async function clear() {
-    setPlanning(options)
-    setData([])
+    setPlanning(options);
+    setData([]);
   }
 
   async function remove(i: number) {
-    await useApi("delete", `/planning/${i}`)
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    if (window.confirm("Deseja realmente apagar este planejamento?")) {
+      await useApi("delete", `/planning/${i}`)
+        .then((response) => {
+          console.log(response);
+          setReload(false);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
   }
+
+  async function situacao(planejamento: any) {
+    const data: string[][] = [];
+    let arr1: any;
+    let arr2: Array<string> = [];
+
+    const l = planejamento.map((b: any) => {
+      let x = b.planejamento.hasCategory.map((p: any) => p.valuePerCategory);
+      let y = b.transaction.map((p: any) => p.categoriaSoma);
+      arr1 = [];
+      for (var i = 0; i < x.length; i++) {
+        if (y[i] == null) {
+          arr1.push(`Nenhuma despesa`);
+        } else if (Number(x[i]) == Number(y[i]) && Number(y[i]) != null) {
+          arr1.push("alcançou o limite");
+        } else if (Number(x[i]) > Number(y[i]) && Number(y[i]) != null) {
+          arr1.push("Dentro da meta planejada");
+        } else if (Number(x[i]) < Number(y[i])) {
+          arr1.push("ultrapassou o limite");
+        }
+      }
+      // arr2.push(arr1.join('\n'));
+      console.log(arr2.push(arr1.join(" \n")));
+    });
+    setSituation(arr2);
+  }
+
+  console.log(situation);
 
   const id = watch("id");
 
@@ -114,7 +166,8 @@ export default function Planning() {
       <p className="text-sm text-[#908B8B]">
         Listagem de planejamentos mensais
       </p>
-      <p className="mt-8">Selecione o planejamento que deseja mostrar:</p>
+      {/* {despesas.map((item) => item.id)} */}
+      <p className="mt-8">Filtrar planejamento por mês:</p>
       <div className="grid grid-cols-8">
         <select
           {...register(`id`, {
@@ -129,8 +182,8 @@ export default function Planning() {
           </option>
           {options
             ? options.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {convert(item.month)}
+                <option key={item.planejamento.id} value={item.planejamento.id}>
+                  {convert(item.planejamento.month)}
                 </option>
               ))
             : null}
@@ -142,11 +195,7 @@ export default function Planning() {
         >
           Buscar
         </Button>
-        <Button
-          className="w-20 ml-4"
-          type={'button'}
-          onClick={(clear)}
-        >
+        <Button className="w-20 ml-4" type={"button"} onClick={clear}>
           Limpar
         </Button>
       </div>
@@ -158,76 +207,156 @@ export default function Planning() {
         </div>
         <div>
           <b className="text-xl text-[#1E90FF]">
-            {data
-              ? data.slice(0, 1).map((item) => convert(item.month))
+            {data.planejamento
+              ? data.planejamento.map((item: any) => convert(item.month))
               : null}
           </b>
         </div>
+        {planning.length == 0 && data.length == 0 ? (
+          <p className="mt-5 text-sm text-[#8c8c8c]">
+            Nenhum planejamento cadastrado até o momento
+          </p>
+        ) : null}
       </div>
       {planning && data
         ? planning.map((item, i) => (
-            <table className="mt-5" key={i}>
-              <thead>
-                <tr>
-                  <th>
-                    <button onClick={() => remove(item.id)}>
-                      <Icon
-                        icon="ph:trash"
-                        className="text-[#6174EE]"
-                        width="24"
-                        height="24"
-                      />
-                    </button>
-                  </th>
-                  <th className="text-xl align-center text-[#1E90FF]">
-                    {convert(item.month)}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="bg-[#6174EE] text-white rounded-md">
-                  <td>Categoria</td>
-                  <td>Expectativa de gasto</td>
-                  <td>Despesa do mês</td>
-                  <td>Situação</td>
-                </tr>
-                {item.hasCategory
-                  ? item.hasCategory.map((item, index) => (
-                      <tr key={index}>
-                        <td> {item.category["name"]}</td>
-                        <td>R${item.valuePerCategory}</td>
-                      </tr>
-                    ))
-                  : null}
-              </tbody>
-            </table>
+            <div className="mt-8" key={i}>
+              <div>
+                <button onClick={() => remove(item.planejamento.id)}>
+                  <Icon
+                    icon="ph:trash"
+                    className="text-[#6174EE]"
+                    width="24"
+                    height="24"
+                  />
+                </button>
+                <b className="text-xl text-[#1E90FF] ">
+                  {convert(item.planejamento.month)}
+                </b>
+              </div>
+              <div className="grid grid-cols-5 border border-indigo-10">
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Categoria</b>
+                  </p>
+                  {item.planejamento.hasCategory.map((categoria, index) => (
+                    <div key={index}>
+                      <p>{categoria.category.name}</p>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Expectativa de Gasto</b>
+                  </p>
+                  {item.planejamento.hasCategory.map((categoria, index) => (
+                    <div key={index}>
+                      <p>R$ {categoria.valuePerCategory}</p>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Despesa p/ Categoria</b>
+                  </p>
+                  {item.transaction
+                    ? item.transaction.map((transaction, index) => (
+                        <div key={index}>
+                          <p>
+                            R${" "}
+                            {transaction.categoriaSoma
+                              ? transaction.categoriaSoma
+                              : "0.00"}
+                          </p>
+                        </div>
+                      ))
+                    : null}
+                </div>
+                <div>
+                  <div className="flex flex-col ">
+                    <p className="bg-[#1E90FF] text-white text-center  ">
+                      <b>Situação</b>
+                    </p>
+                    <div >
+                      <p>{situation[i]}</p>
+                    </div>
+                  </div>
+                  {/* {situation
+                    ? situation.map((situation, s) => (
+                        <div key={s}>
+                          <p>{situation[0]}</p>
+                        </div>
+                      ))
+                    : null} */}
+                </div>
+              </div>
+            </div>
           ))
         : null}
-      {data ? (
-        data.map((item, i) => (
-            <table className="mt-5"  key={item.id}>
-              <tbody>
-                <tr className="bg-[#6174EE] text-white rounded-md">
-                  <td>Categoria</td>
-                  <td>Expectativa de gasto</td>
-                  <td>Despesa</td>
-                  <td>Situação</td>
-                </tr>
-
-                {item.hasCategory
-                  ? item.hasCategory.map((item, index) => (
-                      <tr key={index}>
-                        <td> {item.category["name"]}</td>
-                        <td>R${item.valuePerCategory}</td>
-                      </tr>
-                    ))
-                  : null}
-              </tbody>
-            </table>
-        ))
-      ) : (
-        <p>'Selecione o mês para análise'</p>
-      )}
+      {data
+        ? data.map((item: any, i: number) => (
+            <div className="mt-8" key={i}>
+              <div>
+                {/* <button onClick={() => remove(item.planejamento.id)}>
+                  <Icon
+                    icon="ph:trash"
+                    className="text-[#6174EE]"
+                    width="24"
+                    height="24"
+                  />
+                </button> */}
+                <b className="text-xl text-[#1E90FF]">
+                  {convert(item.planejamento.month)}
+                </b>
+              </div>
+              <div className="grid grid-cols-4">
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Categoria</b>
+                  </p>
+                  {item.planejamento.hasCategory.map(
+                    (categoria: any, index: number) => (
+                      <div key={index}>
+                        <p>{categoria.category.name}</p>
+                      </div>
+                    )
+                  )}
+                </div>
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Expectativa de Gasto</b>
+                  </p>
+                  {item.planejamento.hasCategory.map(
+                    (categoria: any, index: number) => (
+                      <div key={index}>
+                        <p>R$ {categoria.valuePerCategory}</p>
+                      </div>
+                    )
+                  )}
+                </div>
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Despesa p/ Categoria</b>
+                  </p>
+                  {item.transaction
+                    ? item.transaction.map(
+                        (transaction: any, index: number) => (
+                          <div key={index}>
+                            <p>
+                              R${" "}
+                              {transaction.categoriaSoma
+                                ? transaction.categoriaSoma
+                                : "0.00"}
+                            </p>
+                          </div>
+                        )
+                      )
+                    : null}
+                </div>
+              </div>
+            </div>
+          ))
+        : null}
     </div>
   );
 }
