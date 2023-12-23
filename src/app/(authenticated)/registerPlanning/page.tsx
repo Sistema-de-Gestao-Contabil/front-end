@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 
 const hasCategorySchema = z.array(
   z.object({
@@ -13,6 +14,11 @@ const hasCategorySchema = z.array(
     valuePerCategory: z.number().positive("Informe um valor válido"),
   })
 );
+
+interface FormProps {
+  companyId?: number;
+}
+
 const planning = z
   .object({
     month: z.string().min(1, "Informar o mês do planejamento é obrigatório."),
@@ -26,7 +32,9 @@ const planning = z
 
 type createPlanningFormData = z.infer<typeof planning>;
 
-export default function Planning() {
+export default function Planning({
+  companyId,
+}: FormProps) {
   const {
     register,
     handleSubmit,
@@ -40,6 +48,7 @@ export default function Planning() {
   });
 
   const [category, setCategorys] = useState([{ id: "", name: "" }]);
+  const router = useRouter();
 
   const [availableValue, setAvailable] = React.useState(0);
   const [value, setValue] = React.useState(0);
@@ -95,11 +104,12 @@ export default function Planning() {
   }
 
   const onSubmit = (data: any) => {
-    useApi("post", "/planning", data)
-      .then((response) => console.log(response))
+    useApi  ("post", `/planning/${companyId ? companyId : 1}`, data)
+      .then((response) => {console.log(response)
+        router.push("/listPlanning")}
+      )
       .catch((error) => console.log(error));
-  };
-
+    };
   return (
     <div className="container mx-auto px-4 flex min-h-screen flex-col bg-white">
       <p className="text-xl mt-5">Planejamentos</p>

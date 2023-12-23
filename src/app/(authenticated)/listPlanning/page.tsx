@@ -9,6 +9,7 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 
 const select = z.object({
   id: z.number(),
+  companyId: z.number()
 });
 
 const validate = z.object({
@@ -87,7 +88,7 @@ export default function Planning() {
 
   React.useEffect(() => {
     (async () => {
-      await useApi("get", "/planning", planning)
+      await useApi("get", `/planning/list/${companyId ? companyId : 1}`, planning)
         .then((response) => {
           return (
             setPlanning(response),
@@ -104,7 +105,8 @@ export default function Planning() {
 
   async function onSubmit() {
     await useApi("get", `/planning/${id}`)
-      .then((response) => {
+    .then((response) => {
+        console.log('planejam', response)
         return setData(response), setPlanning([]);
       })
       .catch((error) => {
@@ -145,20 +147,20 @@ export default function Planning() {
         } else if (Number(x[i]) == Number(y[i]) && Number(y[i]) != null) {
           arr1.push("alcançou o limite");
         } else if (Number(x[i]) > Number(y[i]) && Number(y[i]) != null) {
-          arr1.push("Dentro da meta planejada");
+          arr1.push("Dentro da meta");
         } else if (Number(x[i]) < Number(y[i])) {
           arr1.push("ultrapassou o limite");
         }
       }
-      // arr2.push(arr1.join('\n'));
-      console.log(arr2.push(arr1.join(" \n")));
+      arr2.push(arr1.join('\n'));
     });
     setSituation(arr2);
   }
 
-  console.log(situation);
-
   const id = watch("id");
+  const companyId = watch("companyId");
+
+  console.log(id)
 
   return (
     <div className="container mx-auto px-4 flex min-h-screen flex-col bg-white">
@@ -191,7 +193,7 @@ export default function Planning() {
         <Button
           className="w-20 ml-12"
           type={"submit"}
-          onClick={handleSubmit(onSubmit)}
+          onClick={onSubmit}
         >
           Buscar
         </Button>
@@ -234,7 +236,7 @@ export default function Planning() {
                   {convert(item.planejamento.month)}
                 </b>
               </div>
-              <div className="grid grid-cols-5 border border-indigo-10">
+              <div className="grid grid-cols-4 border">
                 <div>
                   <p className="bg-[#1E90FF] text-white text-center">
                     <b>Categoria</b>
@@ -251,7 +253,7 @@ export default function Planning() {
                   </p>
                   {item.planejamento.hasCategory.map((categoria, index) => (
                     <div key={index}>
-                      <p>R$ {categoria.valuePerCategory}</p>
+                      <p className="text-center">R$ {categoria.valuePerCategory}</p>
                     </div>
                   ))}
                 </div>
@@ -262,7 +264,7 @@ export default function Planning() {
                   {item.transaction
                     ? item.transaction.map((transaction, index) => (
                         <div key={index}>
-                          <p>
+                          <p className="text-center">
                             R${" "}
                             {transaction.categoriaSoma
                               ? transaction.categoriaSoma
@@ -278,16 +280,9 @@ export default function Planning() {
                       <b>Situação</b>
                     </p>
                     <div >
-                      <p>{situation[i]}</p>
+                      <p className="text-center whitespace-pre">{situation[i]}</p>
                     </div>
                   </div>
-                  {/* {situation
-                    ? situation.map((situation, s) => (
-                        <div key={s}>
-                          <p>{situation[0]}</p>
-                        </div>
-                      ))
-                    : null} */}
                 </div>
               </div>
             </div>
@@ -317,7 +312,7 @@ export default function Planning() {
                   {item.planejamento.hasCategory.map(
                     (categoria: any, index: number) => (
                       <div key={index}>
-                        <p>{categoria.category.name}</p>
+                        <p >{categoria.category.name}</p>
                       </div>
                     )
                   )}
@@ -329,7 +324,7 @@ export default function Planning() {
                   {item.planejamento.hasCategory.map(
                     (categoria: any, index: number) => (
                       <div key={index}>
-                        <p>R$ {categoria.valuePerCategory}</p>
+                        <p className="text-center whitespace-pre">R$ {categoria.valuePerCategory}</p>
                       </div>
                     )
                   )}
@@ -342,7 +337,7 @@ export default function Planning() {
                     ? item.transaction.map(
                         (transaction: any, index: number) => (
                           <div key={index}>
-                            <p>
+                            <p className="text-center whitespace-pre">
                               R${" "}
                               {transaction.categoriaSoma
                                 ? transaction.categoriaSoma
@@ -352,6 +347,16 @@ export default function Planning() {
                         )
                       )
                     : null}
+                </div>
+                <div>
+                  <div className="flex flex-col ">
+                    <p className="bg-[#1E90FF] text-white text-center  ">
+                      <b>Situação</b>
+                    </p>
+                    <div >
+                      <p className="text-center whitespace-pre">{situation[i]}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
