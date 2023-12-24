@@ -20,11 +20,11 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     icon: (
       <Icon icon="material-symbols:finance-rounded" width="24" height="24" />
     ),
-    //submenu: true,
-    // subMenuItems: [
-    //   { title: 'Despesas', path: '/financial/expenses' },
-    //   { title: 'Receitas', path: '/financial/income' },
-    // ],
+    submenu: true,
+    subMenuItems: [
+      { title: 'Transações', path: '/financial/transactions' },
+      { title: 'Pagamento de Salários', path: '/financial/salaryPayment' },
+    ],
   },
   {
     title: "Planejamento",

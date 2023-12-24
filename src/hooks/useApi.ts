@@ -37,12 +37,16 @@ export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'op
       return response.data
     }
 
+    if(response.status === 201){
+      return response.data
+    }
+
     else{
       throw new Error(response.statusText)
     }
     
   } catch (error) {
     console.log(error);
-    
+    alert(error)
   }
 }
