@@ -9,7 +9,7 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 
 const select = z.object({
   id: z.number(),
-  companyId: z.number()
+  companyId: z.number(),
 });
 
 const validate = z.object({
@@ -88,7 +88,11 @@ export default function Planning() {
 
   React.useEffect(() => {
     (async () => {
-      await useApi("get", `/planning/list/${companyId ? companyId : 1}`, planning)
+      await useApi(
+        "get",
+        `/planning/list/${companyId ? companyId : 1}`,
+        planning
+      )
         .then((response) => {
           return (
             setPlanning(response),
@@ -105,8 +109,8 @@ export default function Planning() {
 
   async function onSubmit() {
     await useApi("get", `/planning/${id}`)
-    .then((response) => {
-        console.log('planejam', response)
+      .then((response) => {
+        console.log("planejam", response);
         return setData(response), setPlanning([]);
       })
       .catch((error) => {
@@ -152,15 +156,13 @@ export default function Planning() {
           arr1.push("ultrapassou o limite");
         }
       }
-      arr2.push(arr1.join('\n'));
+      arr2.push(arr1.join("\n"));
     });
     setSituation(arr2);
   }
 
   const id = watch("id");
   const companyId = watch("companyId");
-
-  console.log(id)
 
   return (
     <div className="container mx-auto px-4 flex min-h-screen flex-col bg-white">
@@ -190,11 +192,7 @@ export default function Planning() {
               ))
             : null}
         </select>
-        <Button
-          className="w-20 ml-12"
-          type={"submit"}
-          onClick={onSubmit}
-        >
+        <Button className="w-20 ml-12" type={"submit"} onClick={onSubmit}>
           Buscar
         </Button>
         <Button className="w-20 ml-4" type={"button"} onClick={clear}>
@@ -209,8 +207,8 @@ export default function Planning() {
         </div>
         <div>
           <b className="text-xl text-[#1E90FF]">
-            {data.planejamento
-              ? data.planejamento.map((item: any) => convert(item.month))
+            {data
+              ? data.map((item: any) => convert(item.planejamento.month))
               : null}
           </b>
         </div>
@@ -224,17 +222,25 @@ export default function Planning() {
         ? planning.map((item, i) => (
             <div className="mt-8" key={i}>
               <div>
-                <button onClick={() => remove(item.planejamento.id)}>
-                  <Icon
-                    icon="ph:trash"
-                    className="text-[#6174EE]"
-                    width="24"
-                    height="24"
-                  />
-                </button>
-                <b className="text-xl text-[#1E90FF] ">
-                  {convert(item.planejamento.month)}
-                </b>
+                <div className="flex">
+                  <button onClick={() => remove(item.planejamento.id)}>
+                    <Icon
+                      icon="ph:trash"
+                      className="text-[#6174EE]"
+                      width="24"
+                      height="24"
+                    />
+                  </button>
+                  <b className="text-xl text-[#1E90FF] ">
+                    {convert(item.planejamento.month)} -
+                  </b>
+                  <p className="ml-4 text-[#1E90FF]">
+                    Orçamento: R${item.planejamento.value} -{" "}
+                  </p>
+                  <p className="ml-4 text-[#1E90FF]">
+                    Valor Disponível: R${item.planejamento.value}
+                  </p>
+                </div>
               </div>
               <div className="grid grid-cols-4 border">
                 <div>
@@ -253,7 +259,9 @@ export default function Planning() {
                   </p>
                   {item.planejamento.hasCategory.map((categoria, index) => (
                     <div key={index}>
-                      <p className="text-center">R$ {categoria.valuePerCategory}</p>
+                      <p className="text-center">
+                        R$ {categoria.valuePerCategory}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -279,8 +287,10 @@ export default function Planning() {
                     <p className="bg-[#1E90FF] text-white text-center  ">
                       <b>Situação</b>
                     </p>
-                    <div >
-                      <p className="text-center whitespace-pre">{situation[i]}</p>
+                    <div>
+                      <p className="text-center whitespace-pre">
+                        {situation[i]}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -300,9 +310,6 @@ export default function Planning() {
                     height="24"
                   />
                 </button> */}
-                <b className="text-xl text-[#1E90FF]">
-                  {convert(item.planejamento.month)}
-                </b>
               </div>
               <div className="grid grid-cols-4">
                 <div>
@@ -312,7 +319,7 @@ export default function Planning() {
                   {item.planejamento.hasCategory.map(
                     (categoria: any, index: number) => (
                       <div key={index}>
-                        <p >{categoria.category.name}</p>
+                        <p>{categoria.category.name}</p>
                       </div>
                     )
                   )}
@@ -324,7 +331,9 @@ export default function Planning() {
                   {item.planejamento.hasCategory.map(
                     (categoria: any, index: number) => (
                       <div key={index}>
-                        <p className="text-center whitespace-pre">R$ {categoria.valuePerCategory}</p>
+                        <p className="text-center whitespace-pre">
+                          R$ {categoria.valuePerCategory}
+                        </p>
                       </div>
                     )
                   )}
@@ -353,8 +362,10 @@ export default function Planning() {
                     <p className="bg-[#1E90FF] text-white text-center  ">
                       <b>Situação</b>
                     </p>
-                    <div >
-                      <p className="text-center whitespace-pre">{situation[i]}</p>
+                    <div>
+                      <p className="text-center whitespace-pre">
+                        {situation[i]}
+                      </p>
                     </div>
                   </div>
                 </div>
