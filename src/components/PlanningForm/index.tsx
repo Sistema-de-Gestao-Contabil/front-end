@@ -52,7 +52,6 @@ export default function PlanningForm({ companyId, id }: FormProps) {
 
   const [availableValue, setAvailable] = React.useState(0);
   const [value, setValor] = React.useState(0);
-  const [loading, setLoading] = useState(true);
   const [reload, setreload] = useState(false);
 
   const valuePerCategory = watch("hasCategory");
@@ -75,13 +74,10 @@ export default function PlanningForm({ companyId, id }: FormProps) {
               `hasCategory.${index}.valuePerCategory`,
               b["valuePerCategory"]
             );
-            console.log("indice", index);
-            console.log("oii", b["category"].id);
             update(index, {
               category: b["category"].id,
               valuePerCategory: b["valuePerCategory"],
             });
-            // console.log('tamanho', a.planejamento.hasCategory.length)
           });
         });
         setreload(false);
