@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Button from "@/components/Button";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import { useRouter } from "next/navigation";
 
 const select = z.object({
   id: z.number(),
@@ -46,8 +47,9 @@ export default function Planning() {
   const [data, setData] = useState<createOptionsFormData[]>([]);
   const [despesas, setDespesas] = useState([]);
   const [options, setOptions] = useState<createOptionsFormData[]>([]);
-  const [reload, setReload] = useState(true);
+  const [reload, setReload] = useState(false);
   const [situation, setSituation] = useState([""]);
+  const router = useRouter();
 
   function convert(data: any) {
     if (data) {
@@ -97,7 +99,7 @@ export default function Planning() {
           return (
             setPlanning(response),
             setOptions(response),
-            setReload(true),
+            setReload(false),
             situacao(response)
           );
         })
@@ -128,7 +130,7 @@ export default function Planning() {
       await useApi("delete", `/planning/${i}`)
         .then((response) => {
           console.log(response);
-          setReload(false);
+          setReload(true);
         })
         .catch((error) => {
           console.log(error);
@@ -224,6 +226,7 @@ export default function Planning() {
               <div>
                 <div className="flex">
                   <button onClick={() => remove(item.planejamento.id)}>
+                    {/* {item.planejamento.id} */}
                     <Icon
                       icon="ph:trash"
                       className="text-[#6174EE]"
@@ -231,8 +234,20 @@ export default function Planning() {
                       height="24"
                     />
                   </button>
+                  <button
+                    onClick={() =>
+                      router.push(`/planning-edit/${item.planejamento.id}`)
+                    }
+                  >
+                    <Icon
+                      className="text-[#6174EE]"
+                      width="24"
+                      height="24"
+                      icon="fe:edit"
+                    />
+                  </button>
                   <b className="text-xl text-[#1E90FF] ">
-                    {convert(item.planejamento.month)} -
+                    - {convert(item.planejamento.month)} -
                   </b>
                   <p className="ml-4 text-[#1E90FF]">
                     Orçamento: R${item.planejamento.value} -{" "}
