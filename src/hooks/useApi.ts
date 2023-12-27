@@ -29,7 +29,7 @@ export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'op
     const response = await endPoint.request({
       method,
       //possibilita o uso de query string no método get, como por exemplo .../?name='Maria'
-      url: url + ((method == 'get')?('?'+data):('')),
+      url: url + ((data)?('?'+data):('')),
       data,
       headers,
     })
