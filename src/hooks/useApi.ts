@@ -2,7 +2,6 @@ import axios from "axios";
 
 export const endPoint = axios.create({
   baseURL: "http://localhost:8181/",
-  baseURL: "http://localhost:8181/",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -30,7 +29,7 @@ export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'op
     const response = await endPoint.request({
       method,
       //possibilita o uso de query string no método get, como por exemplo .../?name='Maria'
-      url: url + ((method == 'get')?('?'+data):('')),
+      url: url + ((data)?('?'+data):('')),
       data,
       headers,
     })

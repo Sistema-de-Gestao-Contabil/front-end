@@ -25,22 +25,19 @@ export default function Home() {
 
   useEffect(() => {
     useApi("get", "transactions/graphic-data/1").then((res) => {
-      setData({ expense: res.expense, revenue: res.expense, info: res.info });
+      setData({ expense: res.expense, revenue: res.revenue, info: res.info });
+      console.log({ data: res.revenue });
     });
   }, []);
 
-  // if (data) {
-  //   const labelsBar = data.revenue.map((item: any) => item.categoryName);
-  //   const percentagesBar = data.revenue.map((item: any) => item.percentage);
-  //   const totalSpent = data.expense.map((item: any) => item.totalSpent);
-  // }
-
-  // console.log(labelsLine, percentagesLine);
   async function handleDownloadPDF(type: string) {
     try {
-      const response = await endPoint.get(`report/1?type=${type}`, {
-        responseType: "blob",
-      });
+      const response = await endPoint.get(
+        `transactions/generate-pdf/1?type=${type}`,
+        {
+          responseType: "blob",
+        }
+      );
 
       if (response.status === 200 || response.status === 201) {
         const blob = new Blob([response.data], {
@@ -59,16 +56,13 @@ export default function Home() {
       );
       console.error("Error downloading report:", error);
     }
-    // } catch (error: any) {
-    //   console.error("Erro ao baixar o PDF:", error.response.data.message);
-    // }
   }
 
   const showAlert = (message: string) => {
     setError(message);
     setTimeout(() => {
       setError(null);
-    }, 1550);
+    }, 2000);
   };
 
   const chartData = {
@@ -95,8 +89,8 @@ export default function Home() {
         data: data.revenue.map((item: any) => item.percentage),
         backgroundColor: [
           "#6174EE",
-          "#6E84FF", // Uma cor análoga
-          "#8093FF", // Outra cor análoga
+          "#6E84FF",
+          "#8093FF",
           "#91A5FF",
           "#CFD5FA",
         ],
@@ -142,7 +136,7 @@ export default function Home() {
     },
     plugins: {
       legend: {
-        display: true, // Oculta a legenda
+        display: true,
       },
       tooltip: {
         callbacks: {
@@ -162,22 +156,22 @@ export default function Home() {
       <div className="flex justify-between my-3">
         <CardIcon
           name="Saldo Atual"
-          value={`R$${data.info.cashBalance}`}
+          value={data.info.cashBalance}
           iconName="tabler:flag-dollar"
         />
         <CardIcon
           name="Saidas mensais"
-          value={`R$${data.info.countExpense}`}
+          value={data.info.countExpense}
           iconName="streamline:subscription-cashflow"
         />
         <CardIcon
           name="Entradas mensais"
-          value={`R$${data.info.countRevenue}`}
+          value={data.info.countRevenue}
           iconName="bi:graph-down"
         />
         <CardIcon
           name="ganhos totais"
-          value={`R$${data.info.totalRevenue ? data.info.totalRevenue : "0.00"}`}
+          value={data.info.totalRevenue ? data.info.totalRevenue : 0.0}
           iconName="tabler:flag-dollar"
         />
       </div>

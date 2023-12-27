@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
-import { useApi } from "@/hooks/useApi";
+import { endPoint, useApi } from "@/hooks/useApi";
 import React, { useState } from "react";
 import { any, date, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +8,7 @@ import { useForm } from "react-hook-form";
 import Button from "@/components/Button";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useRouter } from "next/navigation";
+import Alert from "@/components/Alert";
 
 const select = z.object({
   id: z.number(),
@@ -49,6 +51,8 @@ export default function Planning() {
   const [options, setOptions] = useState<createOptionsFormData[]>([]);
   const [reload, setReload] = useState(false);
   const [situation, setSituation] = useState([""]);
+  const [error, setError] = useState<string | null>();
+
   const router = useRouter();
 
   function convert(data: any) {
@@ -163,231 +167,283 @@ export default function Planning() {
     setSituation(arr2);
   }
 
+  async function handleDownloadPDF(id: number) {
+    try {
+      const response = await endPoint.get(
+        `planning/generate-pdf/${id}`,
+        {
+          responseType: "blob",
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        const blob = new Blob([response.data], {
+          type: response.headers["content-type"],
+        });
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `relatorio(${new Date().toLocaleDateString()}).pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      showAlert(
+        `Não há nenhum planejamento para este mês"}`
+      );
+      console.error("Error downloading report:", error);
+    }
+  }
+  const showAlert = (message: string) => {
+    setError(message);
+    setTimeout(() => {
+      setError(null);
+    }, 2000);
+  };
+
   const id = watch("id");
   const companyId = watch("companyId");
 
   return (
-    <div className="container mx-auto px-4 flex min-h-screen flex-col bg-white">
-      <p className="text-xl mt-5">Planejamentos</p>
-      <p className="text-sm text-[#908B8B]">
-        Listagem de planejamentos mensais
-      </p>
-      {/* {despesas.map((item) => item.id)} */}
-      <p className="mt-8">Filtrar planejamento por mês:</p>
-      <div className="grid grid-cols-8">
-        <select
-          {...register(`id`, {
-            required: true,
-            valueAsNumber: true,
-          })}
-          defaultValue={"DEFAULT"}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-50 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 w-40"
-        >
-          <option value="DEFAULT" disabled>
-            selecione o mês
-          </option>
-          {options
-            ? options.map((item) => (
-                <option key={item.planejamento.id} value={item.planejamento.id}>
-                  {convert(item.planejamento.month)}
-                </option>
-              ))
-            : null}
-        </select>
-        <Button className="w-20 ml-12" type={"submit"} onClick={onSubmit}>
-          Buscar
-        </Button>
-        <Button className="w-20 ml-4" type={"button"} onClick={clear}>
-          Limpar
-        </Button>
-      </div>
-      <div className="flex flex-col items-center">
-        <div>
-          <p className=" text-xl text-[#6174EE]">
-            <b>Análises e Despesas </b>
-          </p>
-        </div>
-        <div>
-          <b className="text-xl text-[#1E90FF]">
-            {data
-              ? data.map((item: any) => convert(item.planejamento.month))
-              : null}
-          </b>
-        </div>
-        {planning.length == 0 && data.length == 0 ? (
-          <p className="mt-5 text-sm text-[#8c8c8c]">
-            Nenhum planejamento cadastrado até o momento
-          </p>
-        ) : null}
-      </div>
-      {planning && data
-        ? planning.map((item, i) => (
-            <div className="mt-8" key={i}>
-              <div>
-                <div className="flex">
-                  <button onClick={() => remove(item.planejamento.id)}>
-                    {/* {item.planejamento.id} */}
-                    <Icon
-                      icon="ph:trash"
-                      className="text-[#6174EE]"
-                      width="24"
-                      height="24"
-                    />
-                  </button>
-                  <button
-                    onClick={() =>
-                      router.push(`/planning-edit/${item.planejamento.id}`)
-                    }
+    <>
+      <div className="container mx-auto px-4 flex min-h-screen flex-col bg-white">
+        <p className="text-xl mt-5">Planejamentos</p>
+        <p className="text-sm text-[#908B8B]">
+          Listagem de planejamentos mensais
+        </p>
+        {/* {despesas.map((item) => item.id)} */}
+        <p className="mt-8">Filtrar planejamento por mês:</p>
+        <div className="grid grid-cols-8">
+          <select
+            {...register(`id`, {
+              required: true,
+              valueAsNumber: true,
+            })}
+            defaultValue={"DEFAULT"}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-50 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 w-40"
+          >
+            <option value="DEFAULT" disabled>
+              selecione o mês
+            </option>
+            {options
+              ? options.map((item) => (
+                  <option
+                    key={item.planejamento.id}
+                    value={item.planejamento.id}
                   >
-                    <Icon
-                      className="text-[#6174EE]"
-                      width="24"
-                      height="24"
-                      icon="fe:edit"
-                    />
-                  </button>
-                  <b className="text-xl text-[#1E90FF] ">
-                    - {convert(item.planejamento.month)} -
-                  </b>
-                  <p className="ml-4 text-[#1E90FF]">
-                    Orçamento: R${item.planejamento.value} -{" "}
-                  </p>
-                  <p className="ml-4 text-[#1E90FF]">
-                    Valor Disponível: R${item.planejamento.value}
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 border">
+                    {convert(item.planejamento.month)}
+                  </option>
+                ))
+              : null}
+          </select>
+          <Button className="w-20 ml-12" type={"submit"} onClick={onSubmit}>
+            Buscar
+          </Button>
+          <Button className="w-20 ml-4" type={"button"} onClick={clear}>
+            Limpar
+          </Button>
+        </div>
+        <div className="flex flex-col items-center">
+          <div>
+            <p className=" text-xl text-[#6174EE]">
+              <b>Análises e Despesas </b>
+            </p>
+          </div>
+          <div>
+            <b className="text-xl text-[#1E90FF]">
+              {data
+                ? data.map((item: any) => convert(item.planejamento.month))
+                : null}
+            </b>
+          </div>
+          {planning.length == 0 && data.length == 0 ? (
+            <p className="mt-5 text-sm text-[#8c8c8c]">
+              Nenhum planejamento cadastrado até o momento
+            </p>
+          ) : null}
+        </div>
+        {planning && data
+          ? planning.map((item, i) => (
+              <div className="mt-8" key={i}>
                 <div>
-                  <p className="bg-[#1E90FF] text-white text-center">
-                    <b>Categoria</b>
-                  </p>
-                  {item.planejamento.hasCategory.map((categoria, index) => (
-                    <div key={index}>
-                      <p>{categoria.category.name}</p>
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <p className="bg-[#1E90FF] text-white text-center">
-                    <b>Expectativa de Gasto</b>
-                  </p>
-                  {item.planejamento.hasCategory.map((categoria, index) => (
-                    <div key={index}>
-                      <p className="text-center">
-                        R$ {categoria.valuePerCategory}
+                  <div className="flex justify-between">
+                    <div className="flex">
+                      <b className="text-xl text-[#1E90FF] ">
+                        - {convert(item.planejamento.month)} -
+                      </b>
+                      <p className="ml-4 text-[#1E90FF]">
+                        Orçamento: R${item.planejamento.value} -{" "}
+                      </p>
+                      <p className="ml-4 text-[#1E90FF]">
+                        Valor Disponível: R${item.planejamento.value}
                       </p>
                     </div>
-                  ))}
-                </div>
-                <div>
-                  <p className="bg-[#1E90FF] text-white text-center">
-                    <b>Despesa p/ Categoria</b>
-                  </p>
-                  {item.transaction
-                    ? item.transaction.map((transaction, index) => (
-                        <div key={index}>
-                          <p className="text-center">
-                            R${" "}
-                            {transaction.categoriaSoma
-                              ? transaction.categoriaSoma
-                              : "0.00"}
-                          </p>
-                        </div>
-                      ))
-                    : null}
-                </div>
-                <div>
-                  <div className="flex flex-col ">
-                    <p className="bg-[#1E90FF] text-white text-center  ">
-                      <b>Situação</b>
-                    </p>
-                    <div>
-                      <p className="text-center whitespace-pre">
-                        {situation[i]}
-                      </p>
+                    <div className="flex gap-2">
+                      <button onClick={() => remove(item.planejamento.id)}>
+                        {/* {item.planejamento.id} */}
+                        <Icon
+                          icon="ph:trash"
+                          className="text-[#6174EE]"
+                          width="24"
+                          height="24"
+                        />
+                      </button>
+                      <button
+                        onClick={() =>
+                          router.push(`/planning-edit/${item.planejamento.id}`)
+                        }
+                      >
+                        <Icon
+                          className="text-[#6174EE]"
+                          width="24"
+                          height="24"
+                          icon="fe:edit"
+                        />
+                      </button>
+
+                      <Icon
+                        className="text-[#6174EE] cursor-pointer"
+                        width="24"
+                        height="24"
+                        icon="material-symbols:download"
+                        onClick={() => handleDownloadPDF(item.planejamento.id)}
+                      />
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))
-        : null}
-      {data
-        ? data.map((item: any, i: number) => (
-            <div className="mt-8" key={i}>
-              <div>
-                {/* <button onClick={() => remove(item.planejamento.id)}>
-                  <Icon
-                    icon="ph:trash"
-                    className="text-[#6174EE]"
-                    width="24"
-                    height="24"
-                  />
-                </button> */}
-              </div>
-              <div className="grid grid-cols-4">
-                <div>
-                  <p className="bg-[#1E90FF] text-white text-center">
-                    <b>Categoria</b>
-                  </p>
-                  {item.planejamento.hasCategory.map(
-                    (categoria: any, index: number) => (
+                <div className="grid grid-cols-4 border">
+                  <div>
+                    <p className="bg-[#1E90FF] text-white text-center">
+                      <b>Categoria</b>
+                    </p>
+                    {item.planejamento.hasCategory.map((categoria, index) => (
                       <div key={index}>
                         <p>{categoria.category.name}</p>
                       </div>
-                    )
-                  )}
-                </div>
-                <div>
-                  <p className="bg-[#1E90FF] text-white text-center">
-                    <b>Expectativa de Gasto</b>
-                  </p>
-                  {item.planejamento.hasCategory.map(
-                    (categoria: any, index: number) => (
+                    ))}
+                  </div>
+                  <div>
+                    <p className="bg-[#1E90FF] text-white text-center">
+                      <b>Expectativa de Gasto</b>
+                    </p>
+                    {item.planejamento.hasCategory.map((categoria, index) => (
                       <div key={index}>
-                        <p className="text-center whitespace-pre">
+                        <p className="text-center">
                           R$ {categoria.valuePerCategory}
                         </p>
                       </div>
-                    )
-                  )}
-                </div>
-                <div>
-                  <p className="bg-[#1E90FF] text-white text-center">
-                    <b>Despesa p/ Categoria</b>
-                  </p>
-                  {item.transaction
-                    ? item.transaction.map(
-                        (transaction: any, index: number) => (
+                    ))}
+                  </div>
+                  <div>
+                    <p className="bg-[#1E90FF] text-white text-center">
+                      <b>Despesa p/ Categoria</b>
+                    </p>
+                    {item.transaction
+                      ? item.transaction.map((transaction, index) => (
                           <div key={index}>
-                            <p className="text-center whitespace-pre">
+                            <p className="text-center">
                               R${" "}
                               {transaction.categoriaSoma
                                 ? transaction.categoriaSoma
                                 : "0.00"}
                             </p>
                           </div>
-                        )
-                      )
-                    : null}
-                </div>
-                <div>
-                  <div className="flex flex-col ">
-                    <p className="bg-[#1E90FF] text-white text-center  ">
-                      <b>Situação</b>
-                    </p>
-                    <div>
-                      <p className="text-center whitespace-pre">
-                        {situation[i]}
+                        ))
+                      : null}
+                  </div>
+                  <div>
+                    <div className="flex flex-col ">
+                      <p className="bg-[#1E90FF] text-white text-center  ">
+                        <b>Situação</b>
                       </p>
+                      <div>
+                        <p className="text-center whitespace-pre">
+                          {situation[i]}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
-        : null}
-    </div>
+            ))
+          : null}
+        {data
+          ? data.map((item: any, i: number) => (
+              <div className="mt-8" key={i}>
+                <div>
+                  {/* <button onClick={() => remove(item.planejamento.id)}>
+                    <Icon
+                      icon="ph:trash"
+                      className="text-[#6174EE]"
+                      width="24"
+                      height="24"
+                    />
+                  </button> */}
+                </div>
+                <div className="grid grid-cols-4">
+                  <div>
+                    <p className="bg-[#1E90FF] text-white text-center">
+                      <b>Categoria</b>
+                    </p>
+                    {item.planejamento.hasCategory.map(
+                      (categoria: any, index: number) => (
+                        <div key={index}>
+                          <p>{categoria.category.name}</p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <div>
+                    <p className="bg-[#1E90FF] text-white text-center">
+                      <b>Expectativa de Gasto</b>
+                    </p>
+                    {item.planejamento.hasCategory.map(
+                      (categoria: any, index: number) => (
+                        <div key={index}>
+                          <p className="text-center whitespace-pre">
+                            R$ {categoria.valuePerCategory}
+                          </p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <div>
+                    <p className="bg-[#1E90FF] text-white text-center">
+                      <b>Despesa p/ Categoria</b>
+                    </p>
+                    {item.transaction
+                      ? item.transaction.map(
+                          (transaction: any, index: number) => (
+                            <div key={index}>
+                              <p className="text-center whitespace-pre">
+                                R${" "}
+                                {transaction.categoriaSoma
+                                  ? transaction.categoriaSoma
+                                  : "0.00"}
+                              </p>
+                            </div>
+                          )
+                        )
+                      : null}
+                  </div>
+                  <div>
+                    <div className="flex flex-col ">
+                      <p className="bg-[#1E90FF] text-white text-center  ">
+                        <b>Situação</b>
+                      </p>
+                      <div>
+                        <p className="text-center whitespace-pre">
+                          {situation[i]}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          : null}
+      </div>
+      {error && <Alert message={error} type="error" />}
+    </>
   );
 }

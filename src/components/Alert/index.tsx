@@ -24,7 +24,7 @@ export default function Alert({
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setIsVisible(false);
-    }, 1500);
+    }, 2000);
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -71,6 +71,7 @@ export default function Alert({
                 width="24"
                 height="24"
                 onClick={() => setIsVisible(false)}
+                className="cursor-pointer"
               />
             </div>
           </div>
