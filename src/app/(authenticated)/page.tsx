@@ -4,7 +4,7 @@ import Heading from "@/components/Heading";
 export default function Index() {
   return (
     <>
-      <Heading title="Bem vindo, Admin" subtitle="Dashboard" inputPlaceholder/>
+      <Heading title="Bem vindo, Admin" subtitle="Dashboard" />
     </>
   );
 }
