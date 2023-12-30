@@ -116,7 +116,6 @@ export default function Planning() {
   async function onSubmit() {
     await useApi("get", `/planning/${id}`)
       .then((response) => {
-        console.log("planejam", response);
         return setData(response), setPlanning([]);
       })
       .catch((error) => {
@@ -133,7 +132,6 @@ export default function Planning() {
     if (window.confirm("Deseja realmente apagar este planejamento?")) {
       await useApi("delete", `/planning/${i}`)
         .then((response) => {
-          console.log(response);
           setReload(true);
         })
         .catch((error) => {
@@ -163,6 +161,7 @@ export default function Planning() {
         }
       }
       arr2.push(arr1.join("\n"));
+      console.log(arr2)
     });
     setSituation(arr2);
   }
