@@ -155,7 +155,7 @@ export default function PlanningForm({ companyId, id }: FormProps) {
           (acumulator, currentvalue) => acumulator - currentvalue,
           initialValue
         );
-        setAvailable(subtr);
+        setAvailable(parseFloat(subtr.toFixed(2)));
 
         if (subtr <= availableValue) {
           setRegisterPermited("true");
@@ -184,8 +184,8 @@ export default function PlanningForm({ companyId, id }: FormProps) {
     const dado = valuePerCategory[id];
     if (dado) {
       const add = initialValue + dado.valuePerCategory;
-      setSubtr(add);
-      setAvailable(add);
+      setSubtr(parseFloat(add.toFixed(2)));
+      setAvailable(parseFloat(add.toFixed(2)));
     }
     // setErrorRegister(null);
   }
@@ -217,7 +217,6 @@ export default function PlanningForm({ companyId, id }: FormProps) {
   }
 
   const onSubmit = (data: any) => {
-    // diminuirValorDisponivel();
     if (
       registerPermited == "true" &&
       availableValue >= 0 &&
@@ -256,7 +255,6 @@ export default function PlanningForm({ companyId, id }: FormProps) {
 
   const registerCategory = (data: any) => {
     (async () => {
-      console.log("registrei");
       await useApi(
         "post",
         `/categorys/${companyId ? companyId : 1}`,
@@ -265,9 +263,7 @@ export default function PlanningForm({ companyId, id }: FormProps) {
         .then((response) => {
           setreload(true);
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((err) => showAlert(err.response.data.message));
     })();
   };
 
@@ -469,6 +465,7 @@ export default function PlanningForm({ companyId, id }: FormProps) {
                 </div>
                 <div className="grid grid-cols-2">
                   <button
+                    type="button"
                     className="text-xs ml-60 text-center text-[#6174EE]"
                     onClick={() => openModal()}
                   >
