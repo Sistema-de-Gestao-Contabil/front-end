@@ -23,7 +23,6 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     submenu: true,
     subMenuItems: [
       { title: 'Transações', path: '/financial/transactions' },
-      { title: 'Pagamento de Salários', path: '/financial/salaryPayment' },
     ],
   },
   {

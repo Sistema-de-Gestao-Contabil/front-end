@@ -33,11 +33,7 @@ export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'op
       headers,
     })
 
-    if(response.status === 200){
-      return response.data
-    }
-
-    if(response.status === 201){
+    if(response.status === 200 || response.status == 201){
       return response.data
     }
 
@@ -46,8 +42,9 @@ export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'op
     }
     
   } catch (error) {
-    console.log(error);
-    alert(error)
-    return Promise.reject(error);
+    //return Promise.reject(error);
+    return error
+
+    
   }
 }
