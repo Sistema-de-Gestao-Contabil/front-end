@@ -2,7 +2,7 @@
 "use client";
 import { endPoint, useApi } from "@/hooks/useApi";
 import React, { useState } from "react";
-import { any, date, z } from "zod";
+import { any, array, date, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Button from "@/components/Button";
@@ -51,6 +51,8 @@ export default function Planning() {
   const [options, setOptions] = useState<createOptionsFormData[]>([]);
   const [reload, setReload] = useState(false);
   const [situation, setSituation] = useState([""]);
+  const [amountSpent, setSpent] = useState([0]);
+
   const [error, setError] = useState<string | null>();
 
   const router = useRouter();
@@ -130,7 +132,7 @@ export default function Planning() {
 
   async function remove(i: number) {
     if (window.confirm("Deseja realmente apagar este planejamento?")) {
-      await useApi("delete", `/planning/${i}`)
+      await useApi("delete", `/planning/${i}`);
       setReload(true);
       // .then((response) => {
       //   })
@@ -140,8 +142,13 @@ export default function Planning() {
     }
   }
 
+  function calculate(total: any, item: any) {
+    return Number(total) + Number(item.categoriaSoma);
+  }
+
   async function situacao(planejamento: any) {
-    const data: string[][] = [];
+    const calc: any[] = [];
+    let arrCalc: any[] = [];
     let arr1: any;
     let arr2: Array<string> = [];
 
@@ -150,7 +157,7 @@ export default function Planning() {
       let y = b.transaction.map((p: any) => p.categoriaSoma);
       arr1 = [];
       for (var i = 0; i < x.length; i++) {
-        if (y[i] == null) {
+        if (y[i] == 0) {
           arr1.push(`Nenhuma despesa`);
         } else if (Number(x[i]) == Number(y[i]) && Number(y[i]) != null) {
           arr1.push("alcançou o limite");
@@ -160,20 +167,30 @@ export default function Planning() {
           arr1.push("ultrapassou o limite");
         }
       }
+
       arr2.push(arr1.join("\n"));
-      console.log(arr2)
+      // sum.push(soma)
     });
+    let soma : any
+
+    for (var i = 0; i < planejamento.length; i++) {
+      const dados = planejamento[i].transaction;
+      arrCalc.push(dados);
+       soma = arrCalc.map((item, index) => {
+        let calculo = arrCalc[index].reduce(calculate, 0);
+        return calculo;
+      });
+    }
+    calc.push(soma);
+    setSpent(calc[0])
     setSituation(arr2);
   }
 
   async function handleDownloadPDF(id: number) {
     try {
-      const response = await endPoint.get(
-        `planning/generate-pdf/${id}`,
-        {
-          responseType: "blob",
-        }
-      );
+      const response = await endPoint.get(`planning/generate-pdf/${id}`, {
+        responseType: "blob",
+      });
 
       if (response.status === 200 || response.status === 201) {
         const blob = new Blob([response.data], {
@@ -187,9 +204,7 @@ export default function Planning() {
         document.body.removeChild(link);
       }
     } catch (error) {
-      showAlert(
-        `Não há nenhum planejamento para este mês"}`
-      );
+      showAlert(`Não há nenhum planejamento para este mês"}`);
       console.error("Error downloading report:", error);
     }
   }
@@ -271,10 +286,10 @@ export default function Planning() {
                         - {convert(item.planejamento.month)} -
                       </b>
                       <p className="ml-4 text-[#1E90FF]">
-                        Orçamento: R${item.planejamento.value} -{" "}
+                        Orçamento: R${item.planejamento.value} - {" "}
                       </p>
                       <p className="ml-4 text-[#1E90FF]">
-                        Valor Disponível: R${item.planejamento.value}
+                        Valor total gasto: R${amountSpent[i]}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -340,10 +355,7 @@ export default function Planning() {
                       ? item.transaction.map((transaction, index) => (
                           <div key={index}>
                             <p className="text-center">
-                              R${" "}
-                              {transaction.categoriaSoma
-                                ? transaction.categoriaSoma
-                                : "0.00"}
+                              R$ {transaction.categoriaSoma}
                             </p>
                           </div>
                         ))
@@ -414,10 +426,7 @@ export default function Planning() {
                           (transaction: any, index: number) => (
                             <div key={index}>
                               <p className="text-center whitespace-pre">
-                                R${" "}
-                                {transaction.categoriaSoma
-                                  ? transaction.categoriaSoma
-                                  : "0.00"}
+                                R$ {transaction.categoriaSoma}
                               </p>
                             </div>
                           )
