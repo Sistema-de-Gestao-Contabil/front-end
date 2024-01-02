@@ -15,10 +15,8 @@ const hasCategorySchema = z.array(
   z
     .object({
       category: z
-        .string({
-          invalid_type_error: "* É necessário selecionar a categoria",
-        })
-        .or(z.number()),
+        .string().min(0).optional()
+        .or(z.number()).optional(),
       valuePerCategory: z.number({
         invalid_type_error: "* É necessário informar o valor",
       }),
@@ -93,11 +91,6 @@ export default function PlanningForm({ companyId, id }: FormProps) {
   const [subtr, setSubtr] = useState<number>(0);
   const [valueCategory, setValueCategory] = useState<number>(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalInfo, setModalInfo] = useState<{
-    id?: number;
-    name: string;
-  }>();
-
   const valuePerCategory = watch("planning.hasCategory");
 
   const { fields, append, remove, update } = useFieldArray({
@@ -143,6 +136,22 @@ export default function PlanningForm({ companyId, id }: FormProps) {
         });
     })();
   }, []);
+
+  React.useEffect(() => {
+    if (valuePerCategory && id) {
+      const reduct: number[] = [];
+      let subtr: any;
+      valuePerCategory.map((item: any) => {
+        const initialValue = value;
+        reduct.push(item.valuePerCategory);
+        subtr = reduct.reduce(
+          (acumulator, currentvalue) => acumulator - currentvalue,
+          initialValue
+        );
+        setAvailable(parseFloat(subtr.toFixed(2)))
+      });
+    }
+  }, [valuePerCategory]);
 
   React.useEffect(() => {
     if (valuePerCategory) {
@@ -201,7 +210,7 @@ export default function PlanningForm({ companyId, id }: FormProps) {
     ) {
       if (value) {
         append({
-          category: "DEFAULT",
+          category: 1,
           valuePerCategory: 0,
         });
       } else {
@@ -422,7 +431,6 @@ export default function PlanningForm({ companyId, id }: FormProps) {
                   <select
                     // defaultValue={"DEFAULT"}
                     {...register(`planning.hasCategory.${index}.category`, {
-                      required: true,
                       valueAsNumber: true,
                     })}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-55 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"

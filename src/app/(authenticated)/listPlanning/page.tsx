@@ -2,7 +2,7 @@
 "use client";
 import { endPoint, useApi } from "@/hooks/useApi";
 import React, { useState } from "react";
-import { any, array, date, z } from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Button from "@/components/Button";
@@ -87,12 +87,15 @@ export default function Planning() {
     handleSubmit,
     watch,
     control,
+    setValue,
     formState: { errors },
   } = useForm<createPlanningFormData>({
     mode: "all",
     criteriaMode: "all",
     resolver: zodResolver(select),
   });
+
+  const id = watch("id");
 
   React.useEffect(() => {
     (async () => {
@@ -104,9 +107,11 @@ export default function Planning() {
         .then((response) => {
           return (
             setPlanning(response),
-            setOptions(response),
             setReload(false),
-            situacao(response)
+            situacao(response),
+            // setValue("id", undefined),
+            setData([]),
+            setOptions(response)
           );
         })
         .catch((error) => {
@@ -126,19 +131,18 @@ export default function Planning() {
   }
 
   async function clear() {
-    setReload(true);
     setData([]);
+    setReload(true);
   }
 
   async function remove(i: number) {
     if (window.confirm("Deseja realmente apagar este planejamento?")) {
-      await useApi("delete", `/planning/${i}`);
-      setReload(true);
-      // .then((response) => {
-      //   })
-      //   .catch((error) => {
-      //     console.log(error);
-      //   });
+      try {
+        await useApi("delete", `/planning/${i}`);
+        clear();
+      } catch (error) {
+        console.log({ error: error });
+      }
     }
   }
 
@@ -257,9 +261,8 @@ export default function Planning() {
     }, 2000);
   };
 
-  const id = watch("id");
   const companyId = watch("companyId");
-  
+
   return (
     <>
       <div className="container mx-auto px-4 flex min-h-screen flex-col bg-white">
@@ -420,23 +423,39 @@ export default function Planning() {
             ))
           : null}
         {data
-          ? data.map((item: any, i: number) => (
+          && data.map((item: any, i: number) => (
               <div className="mt-8" key={i}>
-                <div className="flex">
-                  <p className="ml-4 text-[#1E90FF]">
-                    Orçamento: R${item.planejamento.value} -{" "}
-                  </p>
-                  <p className="ml-4 text-[#1E90FF]">
-                    Valor total gasto: R${amountSpent[i]}
-                  </p>
-                  {/* <button onClick={() => remove(item.planejamento.id)}>
+                <div className="flex justify-between">
+                  <div className="flex">
+                    <p className="ml-4 text-[#1E90FF]">
+                      Orçamento: R${item.planejamento.value} -{" "}
+                    </p>
+                    <p className="ml-4 text-[#1E90FF]">
+                      Valor total gasto: R${amountSpent[i]}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        router.push(`/planning-edit/${item.planejamento.id}`)
+                      }
+                    >
+                      <Icon
+                        className="text-[#6174EE]"
+                        width="24"
+                        height="24"
+                        icon="fe:edit"
+                      />
+                    </button>
+
                     <Icon
-                      icon="ph:trash"
-                      className="text-[#6174EE]"
+                      className="text-[#6174EE] cursor-pointer"
                       width="24"
                       height="24"
+                      icon="material-symbols:download"
+                      onClick={() => handleDownloadPDF(item.planejamento.id)}
                     />
-                  </button> */}
+                  </div>
                 </div>
                 <div className="grid grid-cols-4">
                   <div>
@@ -496,7 +515,7 @@ export default function Planning() {
                 </div>
               </div>
             ))
-          : null}
+          }
       </div>
       {error && <Alert message={error} type="error" />}
     </>
