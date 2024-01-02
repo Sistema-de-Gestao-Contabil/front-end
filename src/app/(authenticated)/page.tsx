@@ -6,11 +6,6 @@ import CardIcon from "@/components/CardIcon";
 import "chart.js/auto";
 import { Line, Doughnut, Bar } from "react-chartjs-2";
 import Button from "@/components/Button";
-import {
-  ChartOptions,
-  CoreChartOptions,
-  LineControllerChartOptions,
-} from "chart.js/auto";
 import { endPoint, useApi } from "@/hooks/useApi";
 import Alert from "@/components/Alert";
 
@@ -45,7 +40,9 @@ export default function Home() {
         });
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        link.download = `relatorio(${new Date().toLocaleDateString()}).pdf`;
+        link.download = `relatorio-${
+          type === "monthly" ? "mensal" : "diário"
+        }(${new Date().toLocaleDateString()}).pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -82,6 +79,15 @@ export default function Home() {
 
   const chartBarData = {
     labels: data.revenue.map((item: any) => item.categoryName),
+    // labels: data.expense.map((item: any) => (
+    //   <span
+    //     key={item.categoryName}
+    //     className="category-label"
+    //     onClick={() => console.log(`Valor gasto para ${item.categoryName}: ${item.totalSpent}`)}
+    //   >
+    //     {item.categoryName}
+    //   </span>
+    // )),
     datasets: [
       {
         label: "receitas por categoria",
@@ -127,9 +133,22 @@ export default function Home() {
         },
       },
     },
+    onClick: (event, elements) => {
+      if (elements && elements.length > 0) {
+        const clickedIndex = elements[0].index;
+        const clickedDatasetIndex = elements[0].datasetIndex;
+
+        // Acesse os dados do ponto clicado
+        const clickedData = data.expense[clickedIndex];
+
+        console.log("Point Clicked", clickedData, elements);
+
+        // Adicione lógica adicional conforme necessário
+      }
+    },
   };
 
-  const customDoughnutOptions = {
+  const customBarOptions = {
     scales: {
       x: { type: "category" as const },
       y: { beginAtZero: true },
@@ -143,7 +162,7 @@ export default function Home() {
           label: (context: any) => {
             const value = context.parsed.y;
             const totalSpent = context.dataset.totalSpent[context.dataIndex];
-            return `Valor gasto: ${totalSpent}`;
+            return `Valor Recebido: ${totalSpent}`;
           },
         },
       },
@@ -172,7 +191,7 @@ export default function Home() {
         <CardIcon
           name="ganhos totais"
           value={data.info.totalRevenue ? data.info.totalRevenue : 0.0}
-          iconName="tabler:flag-dollar"
+          iconName="solar:money-bag-linear"
         />
       </div>
       <div className="flex justify-between">
@@ -214,17 +233,32 @@ export default function Home() {
           )}
         </div>
       </div>
-      <div className="flex justify-between">
-        <div style={{ width: "500px", height: "250px" }}>
-          <Line data={chartData} options={customLineOptions} />
+      <div>
+        <div className="flex justify-between">
+          <div style={{ width: "500px", height: "250px" }}>
+            <Line data={chartData} options={customLineOptions} />
+          </div>
+          <div style={{ width: "500px", height: "250" }}>
+            <Bar data={chartBarData} options={customBarOptions} />
+          </div>
         </div>
-        <div style={{ width: "500px", height: "250" }}>
-          <Bar data={chartBarData} options={customDoughnutOptions} />
-        </div>
-      </div>
-      <div className="flex justify-between">
+        <div className="flex justify-between"></div>
         <span className="font-medium text-lg">Transações</span>
+        {data.expense.map((item: any) => (
+          <span
+            key={item.categoryName}
+            className="category-label"
+            onClick={() =>
+              console.log(
+                `Valor gasto para ${item.categoryName}: ${item.totalSpent}`
+              )
+            }
+          >
+            {item.categoryName}
+          </span>
+        ))}
       </div>
+
       {error && <Alert message={error} type="error" />}
     </>
   );

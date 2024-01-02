@@ -5,7 +5,7 @@ import EmployeeForm from "@/components/EmploeyyForm";
 import { useApi } from "@/hooks/useApi";
 import Heading from "@/components/Heading";
 
-interface PageProps {
+export interface PageProps {
   params: { id: number };
 }
 

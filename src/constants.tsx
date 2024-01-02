@@ -22,8 +22,8 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     ),
     submenu: true,
     subMenuItems: [
-      { title: 'Transações', path: '/financial/transactions' },
-      { title: 'Pagamento de Salários', path: '/financial/salaryPayment' },
+      { title: "Transações", path: "/financial/transactions" },
+      { title: "Pagamento de Salários", path: "/financial/salaryPayment" },
     ],
   },
   {
@@ -31,19 +31,21 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     path: "/planning",
     icon: <Icon icon="ic:baseline-add-chart" width="24" height="24" />,
     submenu: true,
-     subMenuItems: [
-        { title: 'Registrar Planejamento', path: '/registerPlanning' },
-        { title: 'Planejamentos Mensais', path: '/listPlanning' },
-      ],
+    subMenuItems: [
+      { title: "Registrar Planejamento", path: "/registerPlanning" },
+      { title: "Planejamentos Mensais", path: "/listPlanning" },
+    ],
   },
+
   {
     title: "Funcionário",
     path: "/employees",
     icon: <Icon icon="mdi:user" width="24" height="24" />,
-    // submenu: true,
-    // subMenuItems: [
-    //   { title: 'Name', path: '/caminho' },
-    // ],
+  },
+  {
+    title: "Empresas",
+    path: "/company",
+    icon: <Icon icon="material-symbols:work-outline" width="24" height="24" />,
   },
   {
     title: "Historico",

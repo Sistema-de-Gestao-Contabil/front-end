@@ -44,6 +44,32 @@ type createPlanningFormData = z.infer<typeof select>;
 type createOptionsFormData = z.infer<typeof validate>;
 // type createDespesasFormData = z.infer<typeof validateDespesa>;
 
+export function convert(data: any) {
+  if (data) {
+    const [ano, mes] = data.split("-");
+    const valor = parseInt(mes);
+    var month = [
+      "",
+      "Janeiro",
+      "Fevereiro",
+      "Março",
+      "Abril",
+      "Maio",
+      "Junho",
+      "Julho",
+      "Agosto",
+      "Setembro",
+      "Outubro",
+      "Novembro",
+      "Dezembro",
+    ];
+    return `${month[valor]} de ${ano}`;
+  } else {
+    return null;
+  }
+}
+
+
 export default function Planning() {
   const [planning, setPlanning] = useState<createOptionsFormData[]>([]);
   const [data, setData] = useState<createOptionsFormData[]>([]);
@@ -55,30 +81,6 @@ export default function Planning() {
 
   const router = useRouter();
 
-  function convert(data: any) {
-    if (data) {
-      const [ano, mes] = data.split("-");
-      const valor = parseInt(mes);
-      var month = [
-        "",
-        "Janeiro",
-        "Fevereiro",
-        "Março",
-        "Abril",
-        "Maio",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro",
-      ];
-      return `${month[valor]} de ${ano}`;
-    } else {
-      return null;
-    }
-  }
 
   const {
     register,
@@ -182,7 +184,7 @@ export default function Planning() {
         });
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        link.download = `relatorio(${new Date().toLocaleDateString()}).pdf`;
+        link.download = `relatorio-planejamentos(${new Date().toLocaleDateString()}).pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

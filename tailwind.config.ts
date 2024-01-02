@@ -28,6 +28,7 @@ const config: Config = {
       indigo: colors.indigo,
       red: colors.red,
       emerald: colors.emerald,
+      orange: colors.orange,
       white: "#ffffff",
       stone: { 300: "#9A9AA1", },
       
