@@ -118,7 +118,7 @@ export default function Planning() {
   async function onSubmit() {
     await useApi("get", `/planning/${id}`)
       .then((response) => {
-        return setData(response), setPlanning([]);
+        return setData(response), setPlanning([]), situacaoData(response);
       })
       .catch((error) => {
         console.log(error);
@@ -126,7 +126,7 @@ export default function Planning() {
   }
 
   async function clear() {
-    setPlanning(options);
+    setReload(true);
     setData([]);
   }
 
@@ -171,18 +171,60 @@ export default function Planning() {
       arr2.push(arr1.join("\n"));
       // sum.push(soma)
     });
-    let soma : any
+    let soma: any;
 
     for (var i = 0; i < planejamento.length; i++) {
       const dados = planejamento[i].transaction;
       arrCalc.push(dados);
-       soma = arrCalc.map((item, index) => {
+      soma = arrCalc.map((item, index) => {
         let calculo = arrCalc[index].reduce(calculate, 0);
         return calculo;
       });
     }
+
     calc.push(soma);
-    setSpent(calc[0])
+    setSpent(calc[0]);
+    setSituation(arr2);
+  }
+
+  async function situacaoData(data: any) {
+    const calc: any[] = [];
+    let arrCalc: any[] = [];
+    let arr1: any;
+    let arr2: Array<string> = [];
+
+    const l = data.map((b: any) => {
+      let x = b.planejamento.hasCategory.map((p: any) => p.valuePerCategory);
+      let y = b.transaction.map((p: any) => p.categoriaSoma);
+      arr1 = [];
+      for (var i = 0; i < x.length; i++) {
+        if (y[i] == 0) {
+          arr1.push(`Nenhuma despesa`);
+        } else if (Number(x[i]) == Number(y[i]) && Number(y[i]) != null) {
+          arr1.push("alcançou o limite");
+        } else if (Number(x[i]) > Number(y[i]) && Number(y[i]) != null) {
+          arr1.push("Dentro da meta");
+        } else if (Number(x[i]) < Number(y[i])) {
+          arr1.push("ultrapassou o limite");
+        }
+      }
+
+      arr2.push(arr1.join("\n"));
+      // sum.push(soma)
+    });
+    let soma: any;
+
+    for (var i = 0; i < data.length; i++) {
+      const dados = data[i].transaction;
+      arrCalc.push(dados);
+      soma = arrCalc.map((item, index) => {
+        let calculo = arrCalc[index].reduce(calculate, 0);
+        return calculo;
+      });
+    }
+
+    calc.push(soma);
+    setSpent(calc[0]);
     setSituation(arr2);
   }
 
@@ -217,7 +259,7 @@ export default function Planning() {
 
   const id = watch("id");
   const companyId = watch("companyId");
-
+  
   return (
     <>
       <div className="container mx-auto px-4 flex min-h-screen flex-col bg-white">
@@ -286,7 +328,7 @@ export default function Planning() {
                         - {convert(item.planejamento.month)} -
                       </b>
                       <p className="ml-4 text-[#1E90FF]">
-                        Orçamento: R${item.planejamento.value} - {" "}
+                        Orçamento: R${item.planejamento.value} -{" "}
                       </p>
                       <p className="ml-4 text-[#1E90FF]">
                         Valor total gasto: R${amountSpent[i]}
@@ -380,7 +422,13 @@ export default function Planning() {
         {data
           ? data.map((item: any, i: number) => (
               <div className="mt-8" key={i}>
-                <div>
+                <div className="flex">
+                  <p className="ml-4 text-[#1E90FF]">
+                    Orçamento: R${item.planejamento.value} -{" "}
+                  </p>
+                  <p className="ml-4 text-[#1E90FF]">
+                    Valor total gasto: R${amountSpent[i]}
+                  </p>
                   {/* <button onClick={() => remove(item.planejamento.id)}>
                     <Icon
                       icon="ph:trash"
@@ -425,7 +473,7 @@ export default function Planning() {
                       ? item.transaction.map(
                           (transaction: any, index: number) => (
                             <div key={index}>
-                              <p className="text-center whitespace-pre">
+                              <p className="text-center">
                                 R$ {transaction.categoriaSoma}
                               </p>
                             </div>
