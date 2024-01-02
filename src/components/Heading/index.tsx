@@ -43,7 +43,20 @@ export default function Heading({ title, subtitle }: HeadingProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          {subtitle == "Dashboard" && <Input placeholder="Buscar" className="w-96" />}
+        {subtitle == "Dashboard" &&
+        <div className="relative flex items-center focus-within:text-gray-600">
+          <Icon
+            className="absolute ml-3 text-gray-500"
+            icon="material-symbols:search"
+            width="20"
+            height="20"
+          />
+          <Input
+            placeholder="Buscar"
+            className="md:w-96 pr-3 pl-10"
+          />
+        </div>}
+          {/* {subtitle == "Dashboard" && <Input placeholder="Buscar" className="w-96" />} */}
 
           <div className="flex gap-5 items-center">
             <Icon icon="mingcute:notification-fill" width="24" height="24" />

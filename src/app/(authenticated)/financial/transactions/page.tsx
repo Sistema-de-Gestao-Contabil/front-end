@@ -264,7 +264,7 @@ export default function Despesas() {
                     >
                       {
                         companys.map((company: any) => {
-                          return <option value={company.id}>{company.name}</option>
+                          return <option key={company.id} value={company.id}>{company.name}</option>
                         })
                       }
                     </select>

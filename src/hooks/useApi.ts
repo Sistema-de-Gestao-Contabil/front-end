@@ -42,9 +42,7 @@ export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'op
     }
     
   } catch (error) {
-    //return Promise.reject(error);
-    return error
-
+    return Promise.reject(error);
     
   }
 }
