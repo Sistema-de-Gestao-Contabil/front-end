@@ -131,12 +131,12 @@ export default function Planning() {
   async function remove(i: number) {
     if (window.confirm("Deseja realmente apagar este planejamento?")) {
       await useApi("delete", `/planning/${i}`)
-        .then((response) => {
-          setReload(true);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      setReload(true);
+      // .then((response) => {
+      //   })
+      //   .catch((error) => {
+      //     console.log(error);
+      //   });
     }
   }
 
@@ -279,7 +279,6 @@ export default function Planning() {
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => remove(item.planejamento.id)}>
-                        {/* {item.planejamento.id} */}
                         <Icon
                           icon="ph:trash"
                           className="text-[#6174EE]"
