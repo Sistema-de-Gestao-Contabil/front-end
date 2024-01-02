@@ -14,9 +14,7 @@ import Select from "../Select";
 const hasCategorySchema = z.array(
   z
     .object({
-      category: z
-        .string().min(0).optional()
-        .or(z.number()).optional(),
+      category: z.string().min(0).optional().or(z.number()).optional(),
       valuePerCategory: z.number({
         invalid_type_error: "* É necessário informar o valor",
       }),
@@ -148,7 +146,12 @@ export default function PlanningForm({ companyId, id }: FormProps) {
           (acumulator, currentvalue) => acumulator - currentvalue,
           initialValue
         );
-        setAvailable(parseFloat(subtr.toFixed(2)))
+        setAvailable(parseFloat(subtr.toFixed(2)));
+        if (availableValue <= value) {
+          setRegisterPermited("true");
+        } else {
+          setRegisterPermited("false");
+        }
       });
     }
   }, [valuePerCategory]);
@@ -166,7 +169,7 @@ export default function PlanningForm({ companyId, id }: FormProps) {
         );
         setAvailable(parseFloat(subtr.toFixed(2)));
 
-        if (subtr <= availableValue) {
+        if (availableValue <= value) {
           setRegisterPermited("true");
         } else {
           setRegisterPermited("false");
