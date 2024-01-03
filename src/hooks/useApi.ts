@@ -23,17 +23,18 @@ export const endPoint = axios.create({
  * @param url URL de destino
  * @param data dados que devem ser enviados
  */
-export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'options', url:string, data?:any, headers?:any) {
+export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'options' | 'patch', url:string, data?:any, headers?:any) {
+  // console.log("data", data)
   try {
     const response = await endPoint.request({
       method,
       //possibilita o uso de query string no método get, como por exemplo .../?name='Maria'
-      url: url + ((method == 'get')?('?'+data):('')),
+      url: url + ((data)?('?'+data):('')),
       data,
       headers,
     })
 
-    if(response.status === 200){
+    if(response.status === 200 || response.status == 201){
       return response.data
     }
 
@@ -42,7 +43,7 @@ export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'op
     }
     
   } catch (error) {
-    console.log(error);
+    return Promise.reject(error);
     
   }
 }
