@@ -11,7 +11,6 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
 
 interface FormProps {
   params: { id: number };
@@ -47,7 +46,6 @@ export default function editUser({ params }: FormProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reload, setreload] = useState(false);
   const [user, setUser] = useState({ employee: { id: 0 } });
-  const router = useRouter();
 
   const {
     register,
@@ -64,7 +62,6 @@ export default function editUser({ params }: FormProps) {
     if (params.id) {
       useApi("get", `/user/${params.id}`, user)
         .then((res) => {
-          console.log(res);
           setValue("usuario.email", res.email),
             setValue("usuario.password", res.password),
             setValue("employee.name", res.employee.name),
@@ -95,7 +92,6 @@ export default function editUser({ params }: FormProps) {
   };
 
   const onUpdateEmployee = (data: createUserFormData) => {
-    console.log("data employee", data.employee);
     useApi("patch", `employee/${user?.employee.id}`, data.employee)
       .then(() => {
         alert("Dados atualizados."), setreload(true);
@@ -109,7 +105,6 @@ export default function editUser({ params }: FormProps) {
   const closeModal = () => {
     setIsModalOpen(false);
   };
-  console.log(errors);
   return (
     <>
       <Heading
