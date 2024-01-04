@@ -19,7 +19,7 @@ interface FormProps {
 const userAuthenticated = z.object({
   usuario: z.object({
     email: z.string(),
-    password: z.string(),
+    password: z.string().or(z.string().default("")),
   }),
   employee: z.object({
     name: z.string().min(1, { message: "nome é um campo obrigatório" }),
@@ -63,7 +63,7 @@ export default function editUser({ params }: FormProps) {
       useApi("get", `/user/${params.id}`, user)
         .then((res) => {
           setValue("usuario.email", res.email),
-            setValue("usuario.password", res.password),
+            setValue("usuario.password", ""),
             setValue("employee.name", res.employee.name),
             setValue("employee.phone", res.employee.phone),
             setValue(
@@ -158,7 +158,7 @@ export default function editUser({ params }: FormProps) {
             <Input label="Email" {...register("usuario.email")}></Input>
           </div>
           <div>
-            <Input label="Senha" {...register("usuario.password")}></Input>
+            <Input label="Senha" placeholder="informe a nova senha" {...register("usuario.password")}></Input>
           </div>
           <div className="flex justify-end mt-4">
             <Button className="w-22">Confirmar</Button>
