@@ -10,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import imgLogin from "@/assets/Croods Chart.png";
 import { useApi } from "@/hooks/useApi";
+import { useRouter } from "next/navigation";
 
 const createUserFormSchema = z.object({
   user: z
@@ -33,6 +34,7 @@ export default function LoginUser() {
   } = useForm<CreateUserFormData>({
     resolver: zodResolver(createUserFormSchema),
   });
+  const router = useRouter()
 
 
   const onSubmit = (data: CreateUserFormData) => {
@@ -41,16 +43,20 @@ export default function LoginUser() {
       .then(async (res) => {
         console.log(res)
 
-        // Extraia o token da resposta
         const token = res?.access_token;
         const companyId = res?.company;
         const role = res?.role;
+        const employee = res?.employee.name;
+        const employeeId = res?.employee.name;
 
-        // Armazene o token no localStorage
         localStorage.setItem('companyId', companyId);
         localStorage.setItem('token', token);
         localStorage.setItem('role', role);
+        localStorage.setItem('name', employee);
+        localStorage.setItem('employeeId', employeeId);
         console.log(localStorage);
+        router.push("/");
+
 
         // if (data.bankAccount?.name != "") {
         //   useApi("post", `back-account/${res.id}`, data.bankAccount);

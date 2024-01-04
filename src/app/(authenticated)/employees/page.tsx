@@ -247,7 +247,7 @@ export default function Employees(props: any) {
           })}
       </Table>
       <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <div>
+        <div className=" max-w-sm">
           <div className="px-3 py-3">
             <h2 className="text-lg font-medium mb-2">Apagar funcionário</h2>
             <hr />

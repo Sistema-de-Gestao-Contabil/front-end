@@ -24,13 +24,10 @@ export async function useApi<T = unknown>(
       Accept: 'application/json',
     };
 
-    // Se houver um token, adicione o cabeçalho de autorização
     if (token) {
-      // Use a notação ["Authorization"] para contornar o problema de tipagem
       (defaultHeaders as any)['Authorization'] = `Bearer ${token}`;
     }
 
-    // Mesclar os cabeçalhos padrão com os cabeçalhos personalizados fornecidos
     const mergedHeaders = {
       ...defaultHeaders,
       ...headers,

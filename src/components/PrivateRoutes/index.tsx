@@ -6,20 +6,19 @@ import React, { ReactNode, useEffect } from "react";
 type PrivateRoutesProps = {
   children: ReactNode;
 };
-export default function PrivateRoutes(children: PrivateRoutesProps) {
+export default function PrivateRoutes({children}: PrivateRoutesProps) {
   const { push } = useRouter();
 
   const isUserAuthenticated: any = checkUserAuthenticated();
 
   useEffect(() => {
-    if (isUserAuthenticated) {
+    if (!isUserAuthenticated) {
       push(APP_ROUTES.public.login);
     }
   }, [isUserAuthenticated, push]);
-
-  return (
-    <>
-      ({!isUserAuthenticated && null}) ({isUserAuthenticated && children})
-    </>
-  );
+  
+  <>
+    ({!isUserAuthenticated && null})
+    ({isUserAuthenticated && children})
+  </>
 }

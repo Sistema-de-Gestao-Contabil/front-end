@@ -20,7 +20,9 @@ export default function Home() {
 
   const storedToken = localStorage.getItem("token");
   const company = localStorage.getItem("companyId");
+  const name = localStorage.getItem("name");
 
+  console.log("00000000000", name);
   if (storedToken) {
     console.log("Token encontrado no localStorage:", storedToken, company);
   } else {
@@ -28,7 +30,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    useApi("get", "transactions/graphic-data/1",).then((res) => {
+    useApi("get", `transactions/graphic-data/${company}`).then((res) => {
       setData({ expense: res.expense, revenue: res.revenue, info: res.info });
       console.log({ data: res.revenue });
     });
@@ -153,7 +155,7 @@ export default function Home() {
         },
       },
     },
-    onClick: (_event: any, elements : any) => {
+    onClick: (_event: any, elements: any) => {
       if (elements && elements.length > 0) {
         const clickedIndex = elements[0].index;
         const clickedDatasetIndex = elements[0].datasetIndex;
@@ -190,7 +192,7 @@ export default function Home() {
   };
   return (
     <>
-      <Heading title="Bem vindo, Admin" subtitle="Dashboard" />
+      <Heading title={`Bem vindo, ${name ? name : 'admin'}`} subtitle="Dashboard" />
 
       <div className="flex justify-between my-3">
         <CardIcon

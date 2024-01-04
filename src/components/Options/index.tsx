@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
@@ -12,10 +13,11 @@ export default function Options() {
   const router = useRouter();
   const [user, setUser] = useState([]);
 
+
   React.useEffect(() => {
     (async () => {
       await useApi("get", `/user/1`, user)
-      .then((response) => {
+        .then((response) => {
           return setUser(response);
         })
         .catch((error) => {
@@ -26,6 +28,11 @@ export default function Options() {
 
   function redirect() {
     router.push(`/edit-user/1`);
+  }
+
+  function logout() {
+    localStorage.clear()
+    router.push(`/loginUser`)
   }
 
   return (
@@ -52,6 +59,7 @@ export default function Options() {
             <div
               className="flex cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
               role="menuitem"
+              onClick={logout}
             >
               <Icon icon="radix-icons:exit" width="24" height="20" />
               Sair

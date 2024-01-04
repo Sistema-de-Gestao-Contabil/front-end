@@ -69,6 +69,7 @@ export default function Company() {
       >
         {data.length > 0 &&
           data.map((item: any) => {
+            console.log(item)
             return (
               <tr key={item.id}>
                 <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap">
