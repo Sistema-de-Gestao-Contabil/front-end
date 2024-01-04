@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig } from 'axios';
 
 export const endPoint = axios.create({
   baseURL: "http://localhost:8181/",
@@ -8,42 +8,46 @@ export const endPoint = axios.create({
   },
 });
 
-// export async function useApi<T = unknown>(url: string) {
-//   return await axios
-//     .get(`${endPoint.defaults.baseURL}/${url}`)
-//     .then((data) => data.data)
-//     .catch((err) => {
-//       console.log(err);
-//     });
-// }
-
-/**
- * Realiza requisições para o backend
- * @param method método da requisição
- * @param url URL de destino
- * @param data dados que devem ser enviados
- */
-export async function useApi<T = unknown>(method:'get'|'post'|'put'|'delete'|'options' | 'patch', url:string, data?:any, headers?:any) {
-  // console.log("data", data)
+export async function useApi<T = unknown>(
+  method: AxiosRequestConfig['method'],
+  url: string,
+  data?: any,
+  headers?: any
+) {
   try {
+    // Obtenha o token do localStorage
+    const token = localStorage.getItem('token');
+
+    // Crie um objeto de cabeçalho padrão com Content-Type e Accept
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+
+    if (token) {
+      (defaultHeaders as any)['Authorization'] = `Bearer ${token}`;
+    }
+
+    const mergedHeaders = {
+      ...defaultHeaders,
+      ...headers,
+    };
+
+    console.log(url + (data ? `?${data}` : ''))
+
     const response = await endPoint.request({
       method,
-      //possibilita o uso de query string no método get, como por exemplo .../?name='Maria'
-      url: url + ((data)?('?'+data):('')),
+      url: url + (data ? `?${data}` : ''), // Adicione a string de consulta se houver dados
       data,
-      headers,
-    })
+      headers: mergedHeaders, // Use os cabeçalhos combinados
+    });
 
-    if(response.status === 200 || response.status == 201){
-      return response.data
+    if (response.status === 200 || response.status === 201) {
+      return response.data;
+    } else {
+      throw new Error(response.statusText);
     }
-
-    else{
-      throw new Error(response.statusText)
-    }
-    
   } catch (error) {
     return Promise.reject(error);
-    
   }
 }

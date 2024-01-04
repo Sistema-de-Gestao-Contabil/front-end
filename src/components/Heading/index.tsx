@@ -9,6 +9,8 @@ import user from "@/assets/user.jpeg";
 import logo from "@/assets/logo.svg";
 
 import Input from "../Input";
+import Options from "../Options";
+
 
 export type HeadingProps = {
   title?: string;
@@ -69,6 +71,7 @@ export default function Heading({ title, subtitle }: HeadingProps) {
               style={{ borderRadius: 56 }}
             />
           </div>
+          <Options />
         </div>
       </div>
     </>

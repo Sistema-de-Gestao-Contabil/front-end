@@ -119,10 +119,12 @@ export default function EmployeeForm({
         setValue("employee.name", res.name),
           setValue("employee.cpf", res.cpf),
           setValue("employee.office", res.office),
-          setValue(
-            "employee.dtBirth",
-            new Date(res.dtBirth).toISOString().substr(0, 10)
-          ),
+          // if(res.dtBirth) {
+          //   setValue(
+          //     "employee.dtBirth",
+          //     new Date(res.dtBirth).toISOString().substr(0, 10)
+          //   ),
+          // }
           setValue("employee.paymentDay", res.paymentDay),
           setValue("employee.phone", res.phone),
           setValue("employee.wage", res.wage);

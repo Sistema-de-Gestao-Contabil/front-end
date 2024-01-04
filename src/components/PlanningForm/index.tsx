@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 import React, { useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
@@ -71,6 +72,7 @@ export default function PlanningForm({ companyId, id }: FormProps) {
     criteriaMode: "all",
     resolver: zodResolver(planning),
   });
+  const company = localStorage.getItem("companyId");
 
   const [category, setCategorys] = useState([
     { id: 0, name: "", company: 0, type: "" },
@@ -234,7 +236,7 @@ export default function PlanningForm({ companyId, id }: FormProps) {
       availableValue >= 0 &&
       availableValue <= value
     ) {
-      useApi("post", `/planning/${companyId ? companyId : 1}`, data.planning)
+      useApi("post", `/planning/${company}`, data.planning)
         .then((response) => {
           setreload(true);
           router.push("/listPlanning");

@@ -44,6 +44,31 @@ type createPlanningFormData = z.infer<typeof select>;
 type createOptionsFormData = z.infer<typeof validate>;
 // type createDespesasFormData = z.infer<typeof validateDespesa>;
 
+export function convert(data: any) {
+  if (data) {
+    const [ano, mes] = data.split("-");
+    const valor = parseInt(mes);
+    var month = [
+      "",
+      "Janeiro",
+      "Fevereiro",
+      "Março",
+      "Abril",
+      "Maio",
+      "Junho",
+      "Julho",
+      "Agosto",
+      "Setembro",
+      "Outubro",
+      "Novembro",
+      "Dezembro",
+    ];
+    return `${month[valor]} de ${ano}`;
+  } else {
+    return null;
+  }
+}
+
 export default function Planning() {
   const [planning, setPlanning] = useState<createOptionsFormData[]>([]);
   const [data, setData] = useState<createOptionsFormData[]>([]);
@@ -56,31 +81,7 @@ export default function Planning() {
   const [error, setError] = useState<string | null>();
 
   const router = useRouter();
-
-  function convert(data: any) {
-    if (data) {
-      const [ano, mes] = data.split("-");
-      const valor = parseInt(mes);
-      var month = [
-        "",
-        "Janeiro",
-        "Fevereiro",
-        "Março",
-        "Abril",
-        "Maio",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro",
-      ];
-      return `${month[valor]} de ${ano}`;
-    } else {
-      return null;
-    }
-  }
+  const company = localStorage.getItem("companyId");
 
   const {
     register,
@@ -99,11 +100,7 @@ export default function Planning() {
 
   React.useEffect(() => {
     (async () => {
-      await useApi(
-        "get",
-        `/planning/list/${companyId ? companyId : 1}`,
-        planning
-      )
+      await useApi("get", `/planning/list/${company}`, planning)
         .then((response) => {
           return (
             setPlanning(response),
@@ -234,26 +231,62 @@ export default function Planning() {
 
   async function handleDownloadPDF(id: number) {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Token não encontrado. Usuário não autenticado.");
+        return;
+      }
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
       const response = await endPoint.get(`planning/generate-pdf/${id}`, {
         responseType: "blob",
+        headers,
       });
 
       if (response.status === 200 || response.status === 201) {
         const blob = new Blob([response.data], {
           type: response.headers["content-type"],
         });
+
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        link.download = `relatorio(${new Date().toLocaleDateString()}).pdf`;
+        link.download = `relatorio-planejamentos(${new Date().toLocaleDateString()}).pdf`;
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
     } catch (error) {
-      showAlert(`Não há nenhum planejamento para este mês"}`);
+      showAlert(`Não há nenhum planejamento para este mês"`);
       console.error("Error downloading report:", error);
     }
   }
+
+  // async function handleDownloadPDF(id: number) {
+  //   console.log(id)
+  //   try {
+  //     const response = await endPoint.get(`planning/generate-pdf/${id}`, {
+  //       responseType: "blob",
+  //     });
+
+  //     if (response.status === 200 || response.status === 201) {
+  //       const blob = new Blob([response.data], {
+  //         type: response.headers["content-type"],
+  //       });
+  //       const link = document.createElement("a");
+  //       link.href = window.URL.createObjectURL(blob);
+  //       link.download = `relatorio-planejamentos(${new Date().toLocaleDateString()}).pdf`;
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       document.body.removeChild(link);
+  //     }
+  //   } catch (error) {
+  //     showAlert(`Não há nenhum planejamento para este mês"}`);
+  //     console.error("Error downloading report:", error);
+  //   }
+  // }
   const showAlert = (message: string) => {
     setError(message);
     setTimeout(() => {
@@ -422,100 +455,99 @@ export default function Planning() {
               </div>
             ))
           : null}
-        {data
-          && data.map((item: any, i: number) => (
-              <div className="mt-8" key={i}>
-                <div className="flex justify-between">
-                  <div className="flex">
-                    <p className="ml-4 text-[#1E90FF]">
-                      Orçamento: R${item.planejamento.value} -{" "}
-                    </p>
-                    <p className="ml-4 text-[#1E90FF]">
-                      Valor total gasto: R${amountSpent[i]}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        router.push(`/planning-edit/${item.planejamento.id}`)
-                      }
-                    >
-                      <Icon
-                        className="text-[#6174EE]"
-                        width="24"
-                        height="24"
-                        icon="fe:edit"
-                      />
-                    </button>
-
+        {data &&
+          data.map((item: any, i: number) => (
+            <div className="mt-8" key={i}>
+              <div className="flex justify-between">
+                <div className="flex">
+                  <p className="ml-4 text-[#1E90FF]">
+                    Orçamento: R${item.planejamento.value} -{" "}
+                  </p>
+                  <p className="ml-4 text-[#1E90FF]">
+                    Valor total gasto: R${amountSpent[i]}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      router.push(`/planning-edit/${item.planejamento.id}`)
+                    }
+                  >
                     <Icon
-                      className="text-[#6174EE] cursor-pointer"
+                      className="text-[#6174EE]"
                       width="24"
                       height="24"
-                      icon="material-symbols:download"
-                      onClick={() => handleDownloadPDF(item.planejamento.id)}
+                      icon="fe:edit"
                     />
-                  </div>
+                  </button>
+
+                  <Icon
+                    className="text-[#6174EE] cursor-pointer"
+                    width="24"
+                    height="24"
+                    icon="material-symbols:download"
+                    onClick={() => handleDownloadPDF(item.planejamento.id)}
+                  />
                 </div>
-                <div className="grid grid-cols-4">
-                  <div>
-                    <p className="bg-[#1E90FF] text-white text-center">
-                      <b>Categoria</b>
-                    </p>
-                    {item.planejamento.hasCategory.map(
-                      (categoria: any, index: number) => (
-                        <div key={index}>
-                          <p>{categoria.category.name}</p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <div>
-                    <p className="bg-[#1E90FF] text-white text-center">
-                      <b>Expectativa de Gasto</b>
-                    </p>
-                    {item.planejamento.hasCategory.map(
-                      (categoria: any, index: number) => (
-                        <div key={index}>
-                          <p className="text-center whitespace-pre">
-                            R$ {categoria.valuePerCategory}
-                          </p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <div>
-                    <p className="bg-[#1E90FF] text-white text-center">
-                      <b>Despesa p/ Categoria</b>
-                    </p>
-                    {item.transaction
-                      ? item.transaction.map(
-                          (transaction: any, index: number) => (
-                            <div key={index}>
-                              <p className="text-center">
-                                R$ {transaction.categoriaSoma}
-                              </p>
-                            </div>
-                          )
-                        )
-                      : null}
-                  </div>
-                  <div>
-                    <div className="flex flex-col ">
-                      <p className="bg-[#1E90FF] text-white text-center  ">
-                        <b>Situação</b>
-                      </p>
-                      <div>
+              </div>
+              <div className="grid grid-cols-4">
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Categoria</b>
+                  </p>
+                  {item.planejamento.hasCategory.map(
+                    (categoria: any, index: number) => (
+                      <div key={index}>
+                        <p>{categoria.category.name}</p>
+                      </div>
+                    )
+                  )}
+                </div>
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Expectativa de Gasto</b>
+                  </p>
+                  {item.planejamento.hasCategory.map(
+                    (categoria: any, index: number) => (
+                      <div key={index}>
                         <p className="text-center whitespace-pre">
-                          {situation[i]}
+                          R$ {categoria.valuePerCategory}
                         </p>
                       </div>
+                    )
+                  )}
+                </div>
+                <div>
+                  <p className="bg-[#1E90FF] text-white text-center">
+                    <b>Despesa p/ Categoria</b>
+                  </p>
+                  {item.transaction
+                    ? item.transaction.map(
+                        (transaction: any, index: number) => (
+                          <div key={index}>
+                            <p className="text-center">
+                              R$ {transaction.categoriaSoma}
+                            </p>
+                          </div>
+                        )
+                      )
+                    : null}
+                </div>
+                <div>
+                  <div className="flex flex-col ">
+                    <p className="bg-[#1E90FF] text-white text-center  ">
+                      <b>Situação</b>
+                    </p>
+                    <div>
+                      <p className="text-center whitespace-pre">
+                        {situation[i]}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-            ))
-          }
+            </div>
+          ))}
       </div>
       {error && <Alert message={error} type="error" />}
     </>

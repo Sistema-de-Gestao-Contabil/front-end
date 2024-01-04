@@ -6,11 +6,6 @@ import CardIcon from "@/components/CardIcon";
 import "chart.js/auto";
 import { Line, Doughnut, Bar } from "react-chartjs-2";
 import Button from "@/components/Button";
-import {
-  ChartOptions,
-  CoreChartOptions,
-  LineControllerChartOptions,
-} from "chart.js/auto";
 import { endPoint, useApi } from "@/hooks/useApi";
 import Alert from "@/components/Alert";
 
@@ -23,8 +18,19 @@ export default function Home() {
     info: {},
   });
 
+  const storedToken = localStorage.getItem("token");
+  const company = localStorage.getItem("companyId");
+  const name = localStorage.getItem("name");
+
+  console.log("00000000000", name);
+  if (storedToken) {
+    console.log("Token encontrado no localStorage:", storedToken, company);
+  } else {
+    console.log("Nenhum token encontrado no localStorage");
+  }
+
   useEffect(() => {
-    useApi("get", "transactions/graphic-data/1").then((res) => {
+    useApi("get", `transactions/graphic-data/${company}`).then((res) => {
       setData({ expense: res.expense, revenue: res.revenue, info: res.info });
       console.log({ data: res.revenue });
     });
@@ -32,10 +38,20 @@ export default function Home() {
 
   async function handleDownloadPDF(type: string) {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Token não encontrado. Usuário não autenticado.");
+        return;
+      }
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
       const response = await endPoint.get(
         `transactions/generate-pdf/1?type=${type}`,
         {
           responseType: "blob",
+          headers,
         }
       );
 
@@ -43,18 +59,21 @@ export default function Home() {
         const blob = new Blob([response.data], {
           type: response.headers["content-type"],
         });
+
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        link.download = `relatorio(${new Date().toLocaleDateString()}).pdf`;
+        link.download = `relatorio-${
+          type === "monthly" ? "mensal" : "diário"
+        }(${new Date().toLocaleDateString()}).pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
     } catch (error) {
       showAlert(
-        `Não há nenhuma transação ${type == "monthly" ? "mensal" : "diaria"}`
+        `Não há nenhuma transação ${type === "monthly" ? "mensal" : "diária"}`
       );
-      console.error("Error downloading report:", error);
+      console.error("Erro ao baixar o relatório:", error);
     }
   }
 
@@ -82,6 +101,15 @@ export default function Home() {
 
   const chartBarData = {
     labels: data.revenue.map((item: any) => item.categoryName),
+    // labels: data.expense.map((item: any) => (
+    //   <span
+    //     key={item.categoryName}
+    //     className="category-label"
+    //     onClick={() => console.log(`Valor gasto para ${item.categoryName}: ${item.totalSpent}`)}
+    //   >
+    //     {item.categoryName}
+    //   </span>
+    // )),
     datasets: [
       {
         label: "receitas por categoria",
@@ -127,9 +155,22 @@ export default function Home() {
         },
       },
     },
+    onClick: (_event: any, elements: any) => {
+      if (elements && elements.length > 0) {
+        const clickedIndex = elements[0].index;
+        const clickedDatasetIndex = elements[0].datasetIndex;
+
+        // Acesse os dados do ponto clicado
+        const clickedData = data.expense[clickedIndex];
+
+        console.log("Point Clicked", clickedData, elements);
+
+        // Adicione lógica adicional conforme necessário
+      }
+    },
   };
 
-  const customDoughnutOptions = {
+  const customBarOptions = {
     scales: {
       x: { type: "category" as const },
       y: { beginAtZero: true },
@@ -143,7 +184,7 @@ export default function Home() {
           label: (context: any) => {
             const value = context.parsed.y;
             const totalSpent = context.dataset.totalSpent[context.dataIndex];
-            return `Valor gasto: ${totalSpent}`;
+            return `Valor Recebido: ${totalSpent}`;
           },
         },
       },
@@ -151,7 +192,7 @@ export default function Home() {
   };
   return (
     <>
-      <Heading title="Bem vindo, Admin" subtitle="Dashboard" />
+      <Heading title={`Bem vindo, ${name ? name : 'admin'}`} subtitle="Dashboard" />
 
       <div className="flex justify-between my-3">
         <CardIcon
@@ -172,7 +213,7 @@ export default function Home() {
         <CardIcon
           name="ganhos totais"
           value={data.info.totalRevenue ? data.info.totalRevenue : 0.0}
-          iconName="tabler:flag-dollar"
+          iconName="solar:money-bag-linear"
         />
       </div>
       <div className="flex justify-between">
@@ -214,17 +255,32 @@ export default function Home() {
           )}
         </div>
       </div>
-      <div className="flex justify-between">
-        <div style={{ width: "500px", height: "250px" }}>
-          <Line data={chartData} options={customLineOptions} />
+      <div>
+        <div className="flex justify-between">
+          <div style={{ width: "500px", height: "250px" }}>
+            <Line data={chartData} options={customLineOptions} />
+          </div>
+          <div style={{ width: "500px", height: "250" }}>
+            <Bar data={chartBarData} options={customBarOptions} />
+          </div>
         </div>
-        <div style={{ width: "500px", height: "250" }}>
-          <Bar data={chartBarData} options={customDoughnutOptions} />
-        </div>
-      </div>
-      <div className="flex justify-between">
+        <div className="flex justify-between"></div>
         <span className="font-medium text-lg">Transações</span>
+        {data.expense.map((item: any) => (
+          <span
+            key={item.categoryName}
+            className="category-label"
+            onClick={() =>
+              console.log(
+                `Valor gasto para ${item.categoryName}: ${item.totalSpent}`
+              )
+            }
+          >
+            {item.categoryName}
+          </span>
+        ))}
       </div>
+
       {error && <Alert message={error} type="error" />}
     </>
   );
