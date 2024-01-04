@@ -65,7 +65,7 @@ export default function Alert({
                 height="24"
               />
 
-              <p className="pr-1">Erro: {message}</p>
+              <p className="pr-1">{type == 'error' ? 'Erro' : 'Sucesso'}: {message}</p>
               <Icon
                 icon="material-symbols-light:close"
                 width="24"

@@ -11,6 +11,8 @@ import { z } from 'zod'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Icon } from "@iconify/react";
 import Alert from "@/components/Alert";
+import Modal from "@/components/Modal";
+import { endPoint } from "@/hooks/useApi";
 
 //Schema que representa cada input do formulário
 let createTransactionForm = z.object({
@@ -42,6 +44,7 @@ export default function Despesas() {
   const [companys, setCompanys] = useState<object[]>([])
   const [alert, setAlert] = useState<string | null>();
   const [alertType, setAlertType] = useState<string | null>()
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
 
   const createTransaction = async (data: CreateTransactionData) => {
@@ -117,13 +120,36 @@ export default function Despesas() {
 
   }
 
-  const deleteCategory = async (id:any) => {
-    const response = await useApi('delete', `categorys/?id=${id}&&companyId=${1}`)
+  const updateCategory = async (id:any, name:any) => {
+    console.log(id);
+    
+    const response = await endPoint.request({
+      method: 'patch',
+      url: `categorys/?id=${id}&&companyId=1`,
+      data: {name}
+    })
 
-    if(response.status == 200){
-      showAlert('Categoria removida com sucesso.', 'success')
+    console.log(response);
+    
+    //@ts-ignore
+    if(response.data.status == 200){
+      showAlert('Categoria atualizada com sucesso.', 'success')
+      setIsModalOpen(!isModalOpen)
       findAllCategorys()
     }
+  }
+
+  const deleteCategory = async (id:any) => {
+    const response = await useApi('delete', `categorys/?id=${id}&&companyId=${1}`)
+    
+    if(confirm('Tem certeza que deseja remover essa categoria')){
+      
+      if(response.status == 200){
+        showAlert('Categoria removida com sucesso.', 'success')
+        findAllCategorys()
+      }
+    }
+
 
     else{
       //console.log(response);
@@ -159,7 +185,7 @@ export default function Despesas() {
 
           {/* Parte de input de categorias */}
           <label htmlFor="category" className="text-[#444557] mt-8">Categoria</label>
-          <div className="w-full z-50">
+          <div className="w-full">
             <div
               className="h-10 pl-3 flex items-center bg-[#F5F5FE] text-[#444557] rounded-xl"
             >
@@ -206,7 +232,11 @@ export default function Despesas() {
                       item.company 
                       &&
                       <>
-                        <button type="button" className="h-10 rounded-md text-white bg-blue-600 p-2 flex items-center hover:bg-blue-700">Editar</button>
+                        <button type="button" className="h-10 rounded-md text-white bg-blue-600 p-2 flex items-center hover:bg-blue-700" onClick={() => {
+                          setIsModalOpen(!isModalOpen)
+                          setCategorySelected(item); 
+                          setShowSelect(!showSelect); 
+                        }}>Editar</button>
                         <button 
                         type="button" 
                         className="text-blue-600 hover:text-blue-700"
@@ -390,6 +420,23 @@ export default function Despesas() {
         </form>
 
       </div>
+      <Modal className="z-50" isOpen={isModalOpen} onClose={() => setIsModalOpen(!isModalOpen)}>
+        <form>
+          <div>
+            <label htmlFor="type" className="text-[#444557]">Nome</label>
+            <input type="text" className="bg-[#F5F5FE] outline-none w-full h-10 mb-3 rounded-xl pl-3 text-[#444557]" placeholder="Nome da nova categoria"
+              onChange={(e: any) => { setNewNameCategory(e.target.value) }} />
+          </div>
+
+          <div className="w-full flex justify-end">
+            {/* @ts-ignore */}
+            <button type="button" onClick={() => updateCategory(categorySelected.id, newNameCategory)} className="h-10 rounded-md mr-3 justify-center w-[80px] text-white bg-blue-600 p-2 flex items-center hover:bg-blue-700">Salvar</button>
+
+            <button type="button" onClick={() => setIsModalOpen(!isModalOpen)} className="text-blue-600 hover:text-blue-700">Cancelar</button>
+          </div>
+
+        </form>
+      </Modal>
       {alert && <Alert message={alert} />}
     </>
   );
