@@ -39,6 +39,7 @@ export default function Employees(props: any) {
     };
     reaload();
   }, [isOpen]);
+  const company = localStorage.getItem("companyId");
 
   const showAlert = (message: string) => {
     setAlert(message);
@@ -58,8 +59,9 @@ export default function Employees(props: any) {
   };
 
   async function handleDownloadPDF() {
+
     try {
-      const response = await fetch("http://localhost:8181/report/2");
+      const response = await fetch(`http://localhost:8181/report/${company}`);
       const blob = await response.blob();
 
       const link = document.createElement("a");
@@ -77,7 +79,7 @@ export default function Employees(props: any) {
   async function handleDelete(id: number) {
     useApi("delete", `employee/${id}`);
     setIsOpen(true);
-    closeModal()
+    closeModal();
   }
   async function handelEmployee() {
     router.push("/register-employee");
@@ -221,7 +223,7 @@ export default function Employees(props: any) {
                   <button
                     className="relative select-none font-sans font-medium text-center uppercase justify-center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-10 max-w-[40px] h-10 max-h-[40px] rounded-lg text-xs text-gray-400 hover:bg-gray-200 active:bg-gray-300"
                     type="button"
-                    onClick={() => router.push(`/edit-employee/${item.id}`)}
+                    onClick={() => router.push(`/edit-employee/${company}`)}
                   >
                     <Icon
                       className="text-gray-500 h-4 w-4 items-center justify-center transition-all m-auto"
@@ -246,7 +248,6 @@ export default function Employees(props: any) {
       </Table>
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <div>
-
           <div className="px-3 py-3">
             <h2 className="text-lg font-medium mb-2">Apagar funcionário</h2>
             <hr />

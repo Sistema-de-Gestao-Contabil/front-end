@@ -30,10 +30,12 @@ const createTransactionForm = z.object({
 type CreateTransactionData = z.infer<typeof createTransactionForm>
 
 export default function Despesas() {
+  const companyId = localStorage.getItem("companyId");
+  
   const { register, handleSubmit, formState: { errors } } = useForm<CreateTransactionData>({
     resolver: zodResolver(createTransactionForm)
   })
-  const [companyId, setCompanyId] = useState<number>(0)
+  // const [companyId, setCompanyId] = useState<number>(0)
   const [categorys, setCategorys] = useState<object[]>([])
   const [showSelect, setShowSelect] = useState(false)
   const [categorySelected, setCategorySelected] = useState<object>()
@@ -65,12 +67,12 @@ export default function Despesas() {
   }
 
   //função para listar as empresas
-  const findAllCompanys = async () => {
-    const response = await useApi('get', 'company')
+  // const findAllCompanys = async () => {
+  //   const response = await useApi('get', 'company')
 
-    setCompanys(response)
-    setCompanyId(response[0].id)
-  }
+  //   setCompanys(response)
+  //   setCompanyId(response[0].id)
+  // }
 
   //função para listar as categorias
   const findAllCategorys = async () => {
@@ -102,7 +104,7 @@ export default function Despesas() {
 
   useEffect(() => {
     findAllCategorys()
-    findAllCompanys()
+    // findAllCompanys()
   }, [])
 
   return (
@@ -233,7 +235,7 @@ export default function Despesas() {
                   <div className="flex-col">
                     <label htmlFor="company" className="text-[#444557]">Empresa</label>
 
-                    <select 
+                    {/* <select 
                     name="companys" 
                     className="mb-8 h-10 w-full pl-3 bg-[#F5F5FE] text-[#444557] rounded-xl border-none"
                     onChange={(e) => setCompanyId(Number(e.target.value))}
@@ -243,7 +245,7 @@ export default function Despesas() {
                           return <option key={company.id} value={company.id}>{company.name}</option>
                         })
                       }
-                    </select>
+                    </select> */}
 
                   </div>
 
@@ -262,7 +264,7 @@ export default function Despesas() {
 
           <label htmlFor="company" className="text-[#444557] mt-8">Empresa</label>
 
-          <select 
+          {/* <select 
           name="companys" 
           className="h-10 w-full pl-3 bg-[#F5F5FE] text-[#444557] rounded-xl border-none"
           onChange={(e) => setCompanyId(Number(e.target.value))}
@@ -272,7 +274,7 @@ export default function Despesas() {
                 return <option key={company.id} value={company.id}>{company.name}</option>
               })
             }
-          </select>
+          </select> */}
 
 
           <label htmlFor="date" className="text-[#444557] mt-8">Data</label>

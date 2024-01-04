@@ -18,8 +18,17 @@ export default function Home() {
     info: {},
   });
 
+  const storedToken = localStorage.getItem("token");
+  const company = localStorage.getItem("companyId");
+
+  if (storedToken) {
+    console.log("Token encontrado no localStorage:", storedToken, company);
+  } else {
+    console.log("Nenhum token encontrado no localStorage");
+  }
+
   useEffect(() => {
-    useApi("get", "transactions/graphic-data/1").then((res) => {
+    useApi("get", "transactions/graphic-data/1",).then((res) => {
       setData({ expense: res.expense, revenue: res.revenue, info: res.info });
       console.log({ data: res.revenue });
     });
@@ -27,10 +36,20 @@ export default function Home() {
 
   async function handleDownloadPDF(type: string) {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Token não encontrado. Usuário não autenticado.");
+        return;
+      }
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
       const response = await endPoint.get(
         `transactions/generate-pdf/1?type=${type}`,
         {
           responseType: "blob",
+          headers,
         }
       );
 
@@ -38,6 +57,7 @@ export default function Home() {
         const blob = new Blob([response.data], {
           type: response.headers["content-type"],
         });
+
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
         link.download = `relatorio-${
@@ -49,9 +69,9 @@ export default function Home() {
       }
     } catch (error) {
       showAlert(
-        `Não há nenhuma transação ${type == "monthly" ? "mensal" : "diaria"}`
+        `Não há nenhuma transação ${type === "monthly" ? "mensal" : "diária"}`
       );
-      console.error("Error downloading report:", error);
+      console.error("Erro ao baixar o relatório:", error);
     }
   }
 
@@ -133,7 +153,7 @@ export default function Home() {
         },
       },
     },
-    onClick: (event, elements) => {
+    onClick: (_event: any, elements : any) => {
       if (elements && elements.length > 0) {
         const clickedIndex = elements[0].index;
         const clickedDatasetIndex = elements[0].datasetIndex;

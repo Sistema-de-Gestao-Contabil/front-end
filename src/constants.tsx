@@ -7,6 +7,7 @@ export type SideNavItem = {
   submenu?: boolean;
   subMenuItems?: SideNavItem[];
 };
+const company = localStorage.getItem("role");
 
 export const SIDENAV_ITEMS: SideNavItem[] = [
   {
@@ -37,16 +38,38 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     ],
   },
 
-  {
-    title: "Funcionário",
-    path: "/employees",
-    icon: <Icon icon="mdi:user" width="24" height="24" />,
-  },
-  {
-    title: "Empresas",
-    path: "/company",
-    icon: <Icon icon="material-symbols:work-outline" width="24" height="24" />,
-  },
+  // {
+  //   title: "Funcionário",
+  //   path: "/employees",
+  //   icon: <Icon icon="mdi:user" width="24" height="24" />,
+  // },
+  ...(company === "ROLE_MANAGER" || company === "ROLE_ADMIN"
+    ? [
+        {
+          title: "Funcionário",
+          path: "/employees",
+          icon: <Icon icon="mdi:user" width="24" height="24" />,
+        },
+      ]
+    : []),
+
+  ...(company === "ROLE_ADMIN"
+    ? [
+        {
+          title: "Empresas",
+          path: "/companys",
+          icon: (
+            <Icon icon="material-symbols:work-outline" width="24" height="24" />
+          ),
+        },
+      ]
+    : []),
+
+  // {
+  //   title: "Empresas",
+  //   path: "/companys",
+  //   icon: <Icon icon="material-symbols:work-outline" width="24" height="24" />,
+  // },
   {
     title: "Historico",
     path: "/loginUser",
