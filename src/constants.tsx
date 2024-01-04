@@ -49,7 +49,7 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
   },
   {
     title: "Historico",
-    path: "/historic",
+    path: "/loginUser",
     icon: <Icon icon="ic:twotone-history" width="24" height="24" />,
   },
 ];

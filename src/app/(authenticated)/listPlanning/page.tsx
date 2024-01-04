@@ -2,7 +2,7 @@
 "use client";
 import { endPoint, useApi } from "@/hooks/useApi";
 import React, { useState } from "react";
-import { any, date, z } from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Button from "@/components/Button";
@@ -77,6 +77,8 @@ export default function Planning() {
   const [options, setOptions] = useState<createOptionsFormData[]>([]);
   const [reload, setReload] = useState(false);
   const [situation, setSituation] = useState([""]);
+  const [amountSpent, setSpent] = useState([0]);
+
   const [error, setError] = useState<string | null>();
 
   const router = useRouter();
@@ -87,12 +89,15 @@ export default function Planning() {
     handleSubmit,
     watch,
     control,
+    setValue,
     formState: { errors },
   } = useForm<createPlanningFormData>({
     mode: "all",
     criteriaMode: "all",
     resolver: zodResolver(select),
   });
+
+  const id = watch("id");
 
   React.useEffect(() => {
     (async () => {
@@ -104,9 +109,11 @@ export default function Planning() {
         .then((response) => {
           return (
             setPlanning(response),
-            setOptions(response),
             setReload(false),
-            situacao(response)
+            situacao(response),
+            // setValue("id", undefined),
+            setData([]),
+            setOptions(response)
           );
         })
         .catch((error) => {
@@ -118,8 +125,7 @@ export default function Planning() {
   async function onSubmit() {
     await useApi("get", `/planning/${id}`)
       .then((response) => {
-        console.log("planejam", response);
-        return setData(response), setPlanning([]);
+        return setData(response), setPlanning([]), situacaoData(response);
       })
       .catch((error) => {
         console.log(error);
@@ -127,25 +133,28 @@ export default function Planning() {
   }
 
   async function clear() {
-    setPlanning(options);
     setData([]);
+    setReload(true);
   }
 
   async function remove(i: number) {
     if (window.confirm("Deseja realmente apagar este planejamento?")) {
-      await useApi("delete", `/planning/${i}`)
-        .then((response) => {
-          console.log(response);
-          setReload(true);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      try {
+        await useApi("delete", `/planning/${i}`);
+        clear();
+      } catch (error) {
+        console.log({ error: error });
+      }
     }
   }
 
+  function calculate(total: any, item: any) {
+    return Number(total) + Number(item.categoriaSoma);
+  }
+
   async function situacao(planejamento: any) {
-    const data: string[][] = [];
+    const calc: any[] = [];
+    let arrCalc: any[] = [];
     let arr1: any;
     let arr2: Array<string> = [];
 
@@ -154,7 +163,7 @@ export default function Planning() {
       let y = b.transaction.map((p: any) => p.categoriaSoma);
       arr1 = [];
       for (var i = 0; i < x.length; i++) {
-        if (y[i] == null) {
+        if (y[i] == 0) {
           arr1.push(`Nenhuma despesa`);
         } else if (Number(x[i]) == Number(y[i]) && Number(y[i]) != null) {
           arr1.push("alcançou o limite");
@@ -164,19 +173,72 @@ export default function Planning() {
           arr1.push("ultrapassou o limite");
         }
       }
+
       arr2.push(arr1.join("\n"));
+      // sum.push(soma)
     });
+    let soma: any;
+
+    for (var i = 0; i < planejamento.length; i++) {
+      const dados = planejamento[i].transaction;
+      arrCalc.push(dados);
+      soma = arrCalc.map((item, index) => {
+        let calculo = arrCalc[index].reduce(calculate, 0);
+        return calculo;
+      });
+    }
+
+    calc.push(soma);
+    setSpent(calc[0]);
+    setSituation(arr2);
+  }
+
+  async function situacaoData(data: any) {
+    const calc: any[] = [];
+    let arrCalc: any[] = [];
+    let arr1: any;
+    let arr2: Array<string> = [];
+
+    const l = data.map((b: any) => {
+      let x = b.planejamento.hasCategory.map((p: any) => p.valuePerCategory);
+      let y = b.transaction.map((p: any) => p.categoriaSoma);
+      arr1 = [];
+      for (var i = 0; i < x.length; i++) {
+        if (y[i] == 0) {
+          arr1.push(`Nenhuma despesa`);
+        } else if (Number(x[i]) == Number(y[i]) && Number(y[i]) != null) {
+          arr1.push("alcançou o limite");
+        } else if (Number(x[i]) > Number(y[i]) && Number(y[i]) != null) {
+          arr1.push("Dentro da meta");
+        } else if (Number(x[i]) < Number(y[i])) {
+          arr1.push("ultrapassou o limite");
+        }
+      }
+
+      arr2.push(arr1.join("\n"));
+      // sum.push(soma)
+    });
+    let soma: any;
+
+    for (var i = 0; i < data.length; i++) {
+      const dados = data[i].transaction;
+      arrCalc.push(dados);
+      soma = arrCalc.map((item, index) => {
+        let calculo = arrCalc[index].reduce(calculate, 0);
+        return calculo;
+      });
+    }
+
+    calc.push(soma);
+    setSpent(calc[0]);
     setSituation(arr2);
   }
 
   async function handleDownloadPDF(id: number) {
     try {
-      const response = await endPoint.get(
-        `planning/generate-pdf/${id}`,
-        {
-          responseType: "blob",
-        }
-      );
+      const response = await endPoint.get(`planning/generate-pdf/${id}`, {
+        responseType: "blob",
+      });
 
       if (response.status === 200 || response.status === 201) {
         const blob = new Blob([response.data], {
@@ -190,9 +252,7 @@ export default function Planning() {
         document.body.removeChild(link);
       }
     } catch (error) {
-      showAlert(
-        `Não há nenhum planejamento para este mês"}`
-      );
+      showAlert(`Não há nenhum planejamento para este mês"}`);
       console.error("Error downloading report:", error);
     }
   }
@@ -203,7 +263,6 @@ export default function Planning() {
     }, 2000);
   };
 
-  const id = watch("id");
   const companyId = watch("companyId");
 
   return (
@@ -277,12 +336,11 @@ export default function Planning() {
                         Orçamento: R${item.planejamento.value} -{" "}
                       </p>
                       <p className="ml-4 text-[#1E90FF]">
-                        Valor Disponível: R${item.planejamento.value}
+                        Valor total gasto: R${amountSpent[i]}
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => remove(item.planejamento.id)}>
-                        {/* {item.planejamento.id} */}
                         <Icon
                           icon="ph:trash"
                           className="text-[#6174EE]"
@@ -344,10 +402,7 @@ export default function Planning() {
                       ? item.transaction.map((transaction, index) => (
                           <div key={index}>
                             <p className="text-center">
-                              R${" "}
-                              {transaction.categoriaSoma
-                                ? transaction.categoriaSoma
-                                : "0.00"}
+                              R$ {transaction.categoriaSoma}
                             </p>
                           </div>
                         ))
@@ -370,17 +425,39 @@ export default function Planning() {
             ))
           : null}
         {data
-          ? data.map((item: any, i: number) => (
+          && data.map((item: any, i: number) => (
               <div className="mt-8" key={i}>
-                <div>
-                  {/* <button onClick={() => remove(item.planejamento.id)}>
+                <div className="flex justify-between">
+                  <div className="flex">
+                    <p className="ml-4 text-[#1E90FF]">
+                      Orçamento: R${item.planejamento.value} -{" "}
+                    </p>
+                    <p className="ml-4 text-[#1E90FF]">
+                      Valor total gasto: R${amountSpent[i]}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        router.push(`/planning-edit/${item.planejamento.id}`)
+                      }
+                    >
+                      <Icon
+                        className="text-[#6174EE]"
+                        width="24"
+                        height="24"
+                        icon="fe:edit"
+                      />
+                    </button>
+
                     <Icon
-                      icon="ph:trash"
-                      className="text-[#6174EE]"
+                      className="text-[#6174EE] cursor-pointer"
                       width="24"
                       height="24"
+                      icon="material-symbols:download"
+                      onClick={() => handleDownloadPDF(item.planejamento.id)}
                     />
-                  </button> */}
+                  </div>
                 </div>
                 <div className="grid grid-cols-4">
                   <div>
@@ -417,11 +494,8 @@ export default function Planning() {
                       ? item.transaction.map(
                           (transaction: any, index: number) => (
                             <div key={index}>
-                              <p className="text-center whitespace-pre">
-                                R${" "}
-                                {transaction.categoriaSoma
-                                  ? transaction.categoriaSoma
-                                  : "0.00"}
+                              <p className="text-center">
+                                R$ {transaction.categoriaSoma}
                               </p>
                             </div>
                           )
@@ -443,7 +517,7 @@ export default function Planning() {
                 </div>
               </div>
             ))
-          : null}
+          }
       </div>
       {error && <Alert message={error} type="error" />}
     </>
